@@ -7,15 +7,6 @@ from PredictionFunction.meta_tables import (
     location_specific_dictionary,
     weather_locations,
 )
-from PredictionFunction.PredictionTypes.daily_data_prep import (
-    prepare_data as prepare_daily_data,
-)
-from PredictionFunction.PredictionTypes.alcohol_mix_data_prep import (
-    product_mix_predictions as prepare_alcohol_data,
-)
-from PredictionFunction.PredictionTypes.hourly_data_prep import (
-    hourly_sales as prepare_hourly_data,
-)
 from PredictionFunction.PredictionTypes.take_out_data_prep import (
     type_predictor as prepare_takeout_data,
 )
@@ -39,22 +30,10 @@ async def main(mytimer: func.TimerRequest) -> None:
         company = instance["Company"]
         restaurant_func = location_specific_dictionary[restaurant]
 
-        if prediction_category == "hour":
-            merged_data, historical_data, future_data = prepare_hourly_data(
+        merged_data, historical_data, future_data = prepare_takeout_data(
                 company, restaurant, start_date, end_date
             )
-        elif prediction_category == "type":
-            merged_data, historical_data, future_data = prepare_takeout_data(
-                company, restaurant, start_date, end_date
-            )
-        elif prediction_category == "alcohol":
-            merged_data, historical_data, future_data = prepare_alcohol_data(
-                company, restaurant, start_date, end_date
-            )
-        elif prediction_category == "day":
-            merged_data, historical_data, future_data = prepare_daily_data(
-                company, restaurant, start_date, end_date
-            )
+
         logging.info(f"Running predictions for {restaurant}")
         model, future_df, current_df = restaurant_func(
             prediction_category, restaurant, merged_data, historical_data, future_data

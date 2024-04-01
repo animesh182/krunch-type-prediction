@@ -6,9 +6,7 @@ from PredictionFunction.Datasets.Holidays.LosTacos.dataset_holidays import (
     twelfth_working_days,
     last_working_day,
 )
-import logging
 from PredictionFunction.utils.utils import calculate_days_30, calculate_days_15,custom_regressor
-from PredictionFunction.Datasets.OpeningHours.lostacos_opening_hours import restaurant_opening_hours
 from PredictionFunction.Datasets.Seasonalities.LosTacos.weekly_seasonality import weekly_seasonalities
 from PredictionFunction.Datasets.Regressors.general_regressors import (
     is_fellesferie_stavanger,

@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 from prophet import Prophet
 import plotly.express as px
-from PredictionFunction.Datasets.Concerts.concerts import sentrum_scene_oslo
 from PredictionFunction.utils.utils import calculate_days_30, custom_regressor, calculate_days_15
 from PredictionFunction.Datasets.Regressors.weather_regressors import (
     heavy_rain_fall_weekday, 
@@ -28,7 +27,6 @@ from PredictionFunction.Datasets.Regressors.weather_regressors import (
     # warm_dry_weekday_fall_future,
     )
 
-from PredictionFunction.Datasets.OpeningHours.lostacos_opening_hours import restaurant_opening_hours
 from PredictionFunction.Datasets.Regressors.general_regressors import (
     is_specific_month,
     is_covid_restriction_christmas,

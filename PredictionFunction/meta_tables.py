@@ -14,16 +14,16 @@ from PredictionFunction.PredictionFiles.LosTacos.stavanger import location_funct
 # This is a datatable showing which city each restaurant locations is in
 data = [
    {"Restaurant": "Oslo Storo", "City": "Oslo", "Company": "Los Tacos"},
-    {"Restaurant": "Oslo City", "City": "Oslo", "Company": "Los Tacos"},
-     {"Restaurant": "Oslo Torggata", "City": "Oslo", "Company": "Los Tacos"},
-     {"Restaurant": "Karl Johan", "City": "Oslo", "Company": "Los Tacos"},
-   {"Restaurant": "Fredrikstad", "City": "Fredrikstad", "Company": "Los Tacos"},
-   {"Restaurant": "Oslo Lokka", "City": "Oslo", "Company": "Los Tacos"},
-    {"Restaurant": "Stavanger", "City": "Stavanger", "Company": "Los Tacos"},
-    {"Restaurant": "Bergen", "City": "Bergen", "Company": "Los Tacos"},
-   {"Restaurant": "Oslo Steen_Strom", "City": "Oslo", "Company": "Los Tacos"},
-    {"Restaurant": "Oslo Smestad", "City": "Oslo", "Company": "Los Tacos"},
-    {"Restaurant": "Sandnes", "City": "Stavanger", "Company": "Los Tacos"},
+#     {"Restaurant": "Oslo City", "City": "Oslo", "Company": "Los Tacos"},
+#      {"Restaurant": "Oslo Torggata", "City": "Oslo", "Company": "Los Tacos"},
+#      {"Restaurant": "Karl Johan", "City": "Oslo", "Company": "Los Tacos"},
+#    {"Restaurant": "Fredrikstad", "City": "Fredrikstad", "Company": "Los Tacos"},
+#    {"Restaurant": "Oslo Lokka", "City": "Oslo", "Company": "Los Tacos"},
+#     {"Restaurant": "Stavanger", "City": "Stavanger", "Company": "Los Tacos"},
+#     {"Restaurant": "Bergen", "City": "Bergen", "Company": "Los Tacos"},
+#    {"Restaurant": "Oslo Steen_Strom", "City": "Oslo", "Company": "Los Tacos"},
+#     {"Restaurant": "Oslo Smestad", "City": "Oslo", "Company": "Los Tacos"},
+#     {"Restaurant": "Sandnes", "City": "Stavanger", "Company": "Los Tacos"},
 
 ]
 location_specific_dictionary = {

@@ -7,7 +7,6 @@ from PredictionFunction.Datasets.Holidays.LosTacos.dataset_holidays import (
 )
 from prophet import Prophet
 import plotly.express as px
-from PredictionFunction.Datasets.OpeningHours.lostacos_opening_hours import restaurant_opening_hours
 from PredictionFunction.Datasets.Regressors.general_regressors import (
     is_specific_month,
     is_covid_restriction_christmas,

@@ -1,7 +1,6 @@
 import pandas as pd
 import logging
 from prophet import Prophet
-from PredictionFunction.Datasets.OpeningHours.lostacos_opening_hours import restaurant_opening_hours
 import numpy as np
 from PredictionFunction.Datasets.Regressors.general_regressors import (
     is_specific_month,
@@ -18,7 +17,6 @@ from PredictionFunction.Datasets.Holidays.LosTacos.dataset_holidays import (
     fornebu_large_concerts,
     ullevaal_big_football_games,
 )
-from PredictionFunction.Datasets.Concerts.concerts import oslo_spektrum,sentrum_scene_oslo
 from PredictionFunction.utils.fetch_events import fetch_events
 from PredictionFunction.Datasets.Regressors.weather_regressors import (
     # warm_dry_weather_spring,

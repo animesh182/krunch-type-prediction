@@ -1,10 +1,5 @@
 import pandas as pd
 from prophet import Prophet
-from PredictionFunction.Datasets.OpeningHours.lostacos_opening_hours import restaurant_opening_hours
-from PredictionFunction.Datasets.Holidays.LosTacos.dataset_holidays import (
-    last_working_day,
-    fifteenth_working_days,
-)
 import logging
 from PredictionFunction.Datasets.Regressors.general_regressors import( 
     is_fall_start,

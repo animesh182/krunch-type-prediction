@@ -1,11 +1,6 @@
 import pandas as pd
 
 from prophet import Prophet
-from PredictionFunction.Datasets.Holidays.LosTacos.dataset_holidays import (
-    last_working_day,
-    fifteenth_working_days,
-)
-from PredictionFunction.Datasets.OpeningHours.lostacos_opening_hours import restaurant_opening_hours
 from PredictionFunction.Datasets.Regressors.general_regressors import (
     is_specific_month,
     is_covid_restriction_christmas,

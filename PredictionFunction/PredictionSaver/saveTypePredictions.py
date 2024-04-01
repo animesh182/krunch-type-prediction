@@ -11,7 +11,7 @@ import psycopg2.extras
 
 def save_type_predictions(data, restaurant):
     # Define the query
-    data.to_csv(f"{restaurant}.csv")
+    # data.to_csv(f"{restaurant}.csv")
     raw_query = """ INSERT INTO public."Predictions_typeprediction"(
 	date, take_out,company , restaurant, id, created_at)
 	VALUES %s"""

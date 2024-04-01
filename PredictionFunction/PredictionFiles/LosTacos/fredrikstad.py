@@ -12,7 +12,6 @@ is_fall_start,
 is_christmas_shopping,
 )
 
-from PredictionFunction.Datasets.OpeningHours.lostacos_opening_hours import restaurant_opening_hours
 from PredictionFunction.Datasets.Regressors.weather_regressors import(
     #warm_dry_weather_spring,
     warm_and_dry_future,

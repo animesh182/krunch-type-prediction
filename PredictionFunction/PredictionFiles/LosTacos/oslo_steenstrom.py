@@ -1,7 +1,6 @@
 import pandas as pd
 
 from prophet import Prophet
-from PredictionFunction.Datasets.OpeningHours.lostacos_opening_hours import restaurant_opening_hours
 from PredictionFunction.utils.utils import calculate_days_30, calculate_days_15,custom_regressor
 from PredictionFunction.Datasets.Holidays.LosTacos.Restaurants.oslo_steenstrom_holidays import (
     christmas_day,

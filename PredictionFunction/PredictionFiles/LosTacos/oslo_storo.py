@@ -6,7 +6,6 @@ from PredictionFunction.Datasets.Holidays.LosTacos.dataset_holidays import (
     fornebu_large_concerts,
     ullevaal_big_football_games,
 )
-from PredictionFunction.Datasets.OpeningHours.lostacos_opening_hours import restaurant_opening_hours
 from PredictionFunction.Datasets.Regressors.general_regressors import(
     is_specific_month,
     is_covid_restriction_christmas,
