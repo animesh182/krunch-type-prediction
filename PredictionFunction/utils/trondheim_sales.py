@@ -206,7 +206,7 @@ def sales_without_effect(company,start_date,end_date,alcohol_reference_restauran
     merged_sales.rename(columns={"total_net":"old_total_net","altered_effect": "total_net"},inplace=True)
     actual_trondheim_sales_grouped = actual_trondheim_sales.groupby(['gastronomic_day','take_out'])['total_net'].sum().reset_index()
     final_merged = pd.concat([merged_sales,actual_trondheim_sales_grouped]).reset_index()
-    final_merged.drop_duplicates('gastronomic_day',keep='last',inplace=True)
+    # final_merged.drop_duplicates('gastronomic_day',keep='last',inplace=True)
     final_merged.drop(columns=["day_of_week","month","scaling_factor","scaled_total_net","old_total_net","effect","index"], inplace=True)
     final_merged.fillna(0,inplace=True)
     filtered_sales = final_merged.copy()
