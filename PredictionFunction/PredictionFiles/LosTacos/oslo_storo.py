@@ -69,6 +69,9 @@ from PredictionFunction.Datasets.Holidays.LosTacos.common_holidays import (
 )
 
 from PredictionFunction.utils.fetch_sales_data import fetch_salesdata
+from PredictionFunction.utils.fetch_events import fetch_events
+from PredictionFunction.utils.openinghours import add_opening_hours
+
 def oslo_storo(prediction_category,restaurant,merged_data,historical_data,future_data):
 
     sales_data_df = historical_data
@@ -246,30 +249,55 @@ def oslo_storo(prediction_category,restaurant,merged_data,historical_data,future
     # Fill the custom regressor with zeros for the rows outside the specific date interval
     df.loc[~date_mask, "custom_regressor"] = 0
 
-    # Different weekly seasonality for 2 weeks in august related to starting fall semester/work
-   
+    # Different weekly seasonality for 2 weeks in august related to starting fall semester/work 
     df["fall_start"] = df["ds"].apply(is_fall_start)
-
-
     df["christmas_shopping"] = df["ds"].apply(is_christmas_shopping)
+    df = add_opening_hours(df,"Oslo Storo",11,11)
+
+    oslo_storo_venues = {
+        "Ulleval","Cosmopolite, Oslo","Oslo City", 
+        "Nordic Black Theatre","Salt Langhuset","Parkteatret Scene",
+    }
+
+    data = {'name':[], 'effect':[]}
+    for venue in oslo_storo_venues:
+        regressors_to_add = []
+        # for venue in karl_johan_venues:
+        venue_df = fetch_events("Oslo Torggata", venue)
+        # event_holidays = pd.concat(objs=[event_holidays, venue_df], ignore_index=True)
+        # event_holidays.to_csv(f"{venue}_holidatest.csv")
+        if 'name' in venue_df.columns:
+            venue_df = venue_df.drop_duplicates('date')
+            venue_df["date"] = pd.to_datetime(venue_df["date"])
+            venue_df = venue_df.rename(columns={"date": "ds"})
+            venue_df["ds"] = pd.to_datetime(venue_df["ds"])
+            venue_df = venue_df[["ds", "name"]]
+            venue_df.columns = ["ds", "event"]
+            dataframe_name = venue.lower().replace(" ", "_").replace(",", "")
+            venue_df[dataframe_name] = 1
+            df = pd.merge(df, venue_df, how="left", on="ds", suffixes=('', '_venue'))
+            df[dataframe_name].fillna(0, inplace=True)
+            regressors_to_add.append((venue_df, dataframe_name))  # Append venue_df along with venue name for regressor addition
+        else:
+            holidays = pd.concat(objs=[holidays, venue_df], ignore_index=True) 
 
 
     # The training DataFrame (df) should also include 'days_since_last' and 'days_until_next' columns.
     # df = calculate_days_30(df, fifteenth_working_days)
 
-    # Ullevål big concerts regressor (Oslo)
-    ullevaal_big_football_games_df = pd.DataFrame(ullevaal_big_football_games)
-    ullevaal_big_football_games_df["date"] = pd.to_datetime(
-        ullevaal_big_football_games_df["date"]
-    )
-    # Rename the columns to match the existing DataFrame
-    ullevaal_big_football_games_df.columns = ["ds", "event"]
-    # Create a new column for the event
-    ullevaal_big_football_games_df["ullevaal_big_football_games"] = 1
-    # Merge the new dataframe with the existing data
-    df = pd.merge(df, ullevaal_big_football_games_df, how="left", on="ds")
-    # Fill missing values with 0
-    df["ullevaal_big_football_games"].fillna(0, inplace=True)
+    # # Ullevål big concerts regressor (Oslo)
+    # ullevaal_big_football_games_df = pd.DataFrame(ullevaal_big_football_games)
+    # ullevaal_big_football_games_df["date"] = pd.to_datetime(
+    #     ullevaal_big_football_games_df["date"]
+    # )
+    # # Rename the columns to match the existing DataFrame
+    # ullevaal_big_football_games_df.columns = ["ds", "event"]
+    # # Create a new column for the event
+    # ullevaal_big_football_games_df["ullevaal_big_football_games"] = 1
+    # # Merge the new dataframe with the existing data
+    # df = pd.merge(df, ullevaal_big_football_games_df, how="left", on="ds")
+    # # Fill missing values with 0
+    # df["ullevaal_big_football_games"].fillna(0, inplace=True)
 
     # create daily seasonality column setting a number for each day of the week, to be used later
     # Create a Boolean column for each weekday
@@ -315,12 +343,19 @@ def oslo_storo(prediction_category,restaurant,merged_data,historical_data,future
     m.add_regressor("heavy_rain_spring_weekday")
     m.add_regressor("heavy_rain_spring_weekend")
     #m.add_regressor("non_heavy_rain_fall_weekend")
+    m.add_regressor("sunshine_amount", standardize=False)
+    m.add_regressor("opening_duration")
 
 
     # Add the Ullevåål big football games  regressor
-    m.add_regressor("ullevaal_big_football_games")
+    # m.add_regressor("ullevaal_big_football_games")
 
     m.add_regressor("custom_regressor")
+
+    for event_df, regressor_name in regressors_to_add:
+        if 'event' in event_df.columns:
+            m.add_regressor(regressor_name)
+
     m.add_seasonality(
         name="monthly", period=30.5, fourier_order=5, condition_name="specific_month"
     )
@@ -431,16 +466,27 @@ def oslo_storo(prediction_category,restaurant,merged_data,historical_data,future
 
     future["christmas_shopping"] = future["ds"].apply(is_christmas_shopping)
 
+    for event_df, event_column in regressors_to_add:
+        if 'event' in event_df.columns:
+            event_df= event_df.drop_duplicates('ds')
+            future = pd.merge(
+                future,
+                event_df[["ds", event_column]],
+                how="left",
+                on="ds",
+            )
+            future[event_column].fillna(0, inplace=True)
+
     # Add Future df for Oslo Spektrum large concerts
     # Merge with the events data
-    future = pd.merge(
-        future,
-        ullevaal_big_football_games_df[["ds", "ullevaal_big_football_games"]],
-        how="left",
-        on="ds",
-    )
-    # Fill missing values with 0
-    future["ullevaal_big_football_games"].fillna(0, inplace=True)
+    # future = pd.merge(
+    #     future,
+    #     ullevaal_big_football_games_df[["ds", "ullevaal_big_football_games"]],
+    #     how="left",
+    #     on="ds",
+    # )
+    # # Fill missing values with 0
+    # future["ullevaal_big_football_games"].fillna(0, inplace=True)
 
     future["specific_month"] = future["ds"].apply(is_specific_month)
     # Calculate the custom regressor values for the future dates
@@ -467,6 +513,7 @@ def oslo_storo(prediction_category,restaurant,merged_data,historical_data,future
     #future = heavy_rain_winter_weekend_future(future)
     future = heavy_rain_spring_weekday_future(future)
     future = heavy_rain_spring_weekend_future(future)
+    future = add_opening_hours(future,"Oslo Storo",11,11)
     #future = non_heavy_rain_fall_weekend_future(future)
     future.fillna(0, inplace=True)
 

@@ -14,3 +14,12 @@ params = {
     "host": "krunch-staging-svr.postgres.database.azure.com",
     "port": "5432",
 }
+
+#local
+# params = {
+#     'dbname': 'salesdb',
+#     'user': 'postgres',
+#     'password': '',
+#     'host': 'localhost',
+#     'port': '5432'
+# }

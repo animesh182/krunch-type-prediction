@@ -59,6 +59,9 @@ from PredictionFunction.Datasets.Holidays.LosTacos.common_holidays import (
     hostferie_sor_ostlandet_weekdend,
 )
 
+from PredictionFunction.utils.openinghours import add_opening_hours
+from PredictionFunction.utils.fetch_events import fetch_events
+
 def fredrikstad(prediction_category,restaurant,merged_data,historical_data,future_data):
     sales_data_df = historical_data
     sales_data_df = sales_data_df.rename(columns={"date": "ds"})
@@ -472,6 +475,33 @@ def fredrikstad(prediction_category,restaurant,merged_data,historical_data,futur
 
 
     df["christmas_shopping"] = df["ds"].apply(is_christmas_shopping)
+    df = add_opening_hours(df, "Fredrikstad",11, 16)
+
+    fredrikstad_venues = {
+        
+    }
+
+    data = {'name':[], 'effect':[]}
+    regressors_to_add = []
+    for venue in fredrikstad_venues:
+        # for venue in karl_johan_venues:
+        venue_df = fetch_events("Oslo Torggata", venue)
+        # event_holidays = pd.concat(objs=[event_holidays, venue_df], ignore_index=True)
+        # event_holidays.to_csv(f"{venue}_holidatest.csv")
+        if 'name' in venue_df.columns:
+            venue_df = venue_df.drop_duplicates('date')
+            venue_df["date"] = pd.to_datetime(venue_df["date"])
+            venue_df = venue_df.rename(columns={"date": "ds"})
+            venue_df["ds"] = pd.to_datetime(venue_df["ds"])
+            venue_df = venue_df[["ds", "name"]]
+            venue_df.columns = ["ds", "event"]
+            dataframe_name = venue.lower().replace(" ", "_").replace(",", "")
+            venue_df[dataframe_name] = 1
+            df = pd.merge(df, venue_df, how="left", on="ds", suffixes=('', '_venue'))
+            df[dataframe_name].fillna(0, inplace=True)
+            regressors_to_add.append((venue_df, dataframe_name))  # Append venue_df along with venue name for regressor addition
+        else:
+            holidays = pd.concat(objs=[holidays, venue_df], ignore_index=True) 
     # df['not_christmas_shopping'] = ~df['ds'].apply(is_christmas_shopping)
 
     ## calculating the paydays and the days before and after. Used in regressions
@@ -535,6 +565,9 @@ def fredrikstad(prediction_category,restaurant,merged_data,historical_data,futur
     m.add_regressor("custom_regressor")
     # m.add_regressor('covid_restriction')
     m.add_regressor("closed_jan")
+    m.add_regressor("opening_duration")
+    m.add_regressor("sunshine_amount", standardize=False)
+
     m.add_seasonality(
         name="monthly", period=30.5, fourier_order=5, condition_name="specific_month"
     )
@@ -683,6 +716,7 @@ def fredrikstad(prediction_category,restaurant,merged_data,historical_data,futur
    # future = heavy_rain_winter_weekend_future(future)
     future = heavy_rain_spring_weekday_future(future)
     future = heavy_rain_spring_weekend_future(future)
+    future = add_opening_hours(future, "Fredrikstad",11, 16)
     #future = non_heavy_rain_fall_weekend_future(future)
 
     future.fillna(0, inplace=True)

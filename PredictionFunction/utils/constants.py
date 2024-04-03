@@ -1,0 +1,31 @@
+opening_hours_dict = {
+    "Oslo Lokka": {"normal_hours": 12, "special_hours": 17},
+    "Oslo Storo": {"normal_hours": 11, "special_hours": 11},
+    "Oslo City": {"normal_hours": 12, "special_hours": 12},
+    "Oslo Torggata": {"normal_hours": 13, "special_hours": 17},
+    "Karl Johan": {"normal_hours": 12, "special_hours": 17},
+    "Fredrikstad": {"normal_hours": 11, "special_hours": 16},
+    "Stavanger": {"normal_hours": 12, "special_hours": 17},
+    "Bergen": {"normal_hours": 12, "special_hours": 17},
+    "Oslo Steen_Strom": {"normal_hours": 9, "special_hours": 8},
+    "Oslo Smestad": {"normal_hours": 7, "special_hours": 7},
+    "Sandnes": {"normal_hours": 11, "special_hours": 9},
+    "Restaurant": {"normal_hours": 13, "special_hours": 0},
+    "Fisketorget Utsalg": {"normal_hours": 13, "special_hours": 0},
+    "Trondheim": {"normal_hours": 12, "special_hours": 17},
+}
+
+article_supergroup_values = [
+    "Øl",
+    "Alcohol",
+    "Beer",
+    "Beer after 21",
+    "Brennevin",
+    "Cocktails",
+    "Rusbrus/Cider",
+    "Spirits",
+    "Tequila",
+    "Vin",
+    "Wine",
+    "Wine, Taco Tuesday",
+]

@@ -2,7 +2,6 @@ import psycopg2
 import logging
 import pandas as pd
 from datetime import timedelta,datetime
-# Define your database parameters here
 from PredictionFunction.utils.params import params
 
 
@@ -16,28 +15,64 @@ def fetch_events(restaurant,location_name):
                     WHERE ar.name = %s
                         AND pl.name = %s
                         """
-    try:
-        with psycopg2.connect(**params) as conn:
-            # Use Pandas to directly read the SQL query into a DataFrame
-            df = pd.read_sql_query(raw_query, conn, params=[restaurant,location_name])
-            formatted_events = []
-            
-            for index, row in df.iterrows():
-                start_date = row['start_date']
-                end_date = row['end_date']
-                
-                if pd.notna(end_date):
-                    current_date = start_date
-                    while current_date <= end_date:
-                        event_copy = row.copy()
-                        event_copy['date'] = current_date
-                        formatted_events.append(event_copy)
-                        current_date += timedelta(days=1)
-                else:
-                    row['date'] = start_date
-                    formatted_events.append(row)
-            
-            return pd.DataFrame(formatted_events)
-    except Exception as e:
-        logging.error(f"Exception: {e}")
-        return None
+    with psycopg2.connect(**params) as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(raw_query,[restaurant,location_name])
+            rows = cursor.fetchall()
+            events_dict = []
+            for row in rows:
+                event_dict = {
+                    "name": row[0],
+                    "event_size": row[1],
+                    "start_date": row[2],
+                    "end_date": row[3]
+                }
+                events_dict.append(event_dict)
+
+    formatted_events = []
+    formatted_holidays =[]
+    threshold=20
+    for events in events_dict:
+        # If 'end_date' is present, calculate the number of days between 'start_date' and 'end_date' and repeat the event for all the days
+        start_date = events.get("start_date")
+        end_date = events.get("end_date")
+        if len(events_dict) >= threshold:
+            if end_date:
+                current_date = start_date
+                while current_date <= end_date:
+                    event_copy = events.copy()
+                    event_copy["date"] = current_date
+                    formatted_events.append(event_copy)
+                    current_date += timedelta(days=1)
+            else:
+                events["date"] = start_date
+                formatted_events.append(events)
+        else:
+            if end_date and start_date and end_date>start_date and end_date-start_date > timedelta(days=threshold):
+                current_date = start_date
+                while current_date <= end_date:
+                    event_copy = events.copy()
+                    event_copy["date"] = current_date
+                    formatted_events.append(event_copy)
+                    current_date += timedelta(days=1)
+
+            elif end_date and start_date and end_date>start_date and end_date-start_date< timedelta(days=threshold):
+                formatted_holidays.append(
+                    {
+                        "holiday": events.get("name"),
+                        "ds": pd.to_datetime(end_date),
+                        "lower_window": -(end_date - start_date).days,
+                        "upper_window": 0,
+                    }
+                )
+            else:
+                formatted_holidays.append(
+                    {
+                        "holiday": events.get("name"),
+                        "ds": end_date if end_date else start_date,
+                        "upper_window": 0,
+                        "lower_window": 0,
+                    }
+                )
+    # pd.DataFrame(formatted_events).to_csv("Events.csv")
+    return pd.DataFrame(formatted_events) if len(events_dict) >= threshold or any(((event["end_date"] - event["start_date"]).days if event.get("end_date") and event.get("start_date") else 0) >= threshold for event in events_dict) else pd.DataFrame(formatted_holidays)

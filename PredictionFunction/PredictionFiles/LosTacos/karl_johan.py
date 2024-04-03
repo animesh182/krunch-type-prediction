@@ -82,6 +82,8 @@ from PredictionFunction.Datasets.Holidays.LosTacos.common_holidays import (
 )
 
 from PredictionFunction.utils.utils import calculate_days_30, calculate_days_15, custom_regressor
+from PredictionFunction.utils.fetch_events import fetch_events
+from PredictionFunction.utils.openinghours import add_opening_hours
 
 # from Predictions.models import MarketingCampaigns
 import xgboost as xgb
@@ -204,6 +206,7 @@ def karl_johan(prediction_category,restaurant,merged_data,historical_data,future
     # df = warm_dry_weather_spring(df)
     df = calculate_days_15(df, fifteenth_working_days)
     # df = non_heavy_rain_fall_weekend(df)
+    df = add_opening_hours(df, "Karl Johan",12, 17)
 
     m = Prophet()
 
@@ -293,91 +296,120 @@ def karl_johan(prediction_category,restaurant,merged_data,historical_data,future
     df["fall_start"] = df["ds"].apply(is_fall_start)
 
     df["christmas_shopping"] = df["ds"].apply(is_christmas_shopping)
+
+    karl_johan_venues = {
+       "Oslo Spektrum", "Sentrum Scene", 
+        "Fornebu", "Ulleval", 
+        "Rockefeller", "Cosmopolite, Oslo","Oslo City","Oslo Konserthus", 
+        "Nordic Black Theatre","Oslo Concert Hall","Salt Langhuset",
+    }
+
+    data = {'name':[], 'effect':[]}
+    for venue in karl_johan_venues:
+        regressors_to_add = []
+        # for venue in karl_johan_venues:
+        venue_df = fetch_events("Oslo Torggata", venue)
+        # event_holidays = pd.concat(objs=[event_holidays, venue_df], ignore_index=True)
+        # event_holidays.to_csv(f"{venue}_holidatest.csv")
+        if 'name' in venue_df.columns:
+            venue_df = venue_df.drop_duplicates('date')
+            venue_df["date"] = pd.to_datetime(venue_df["date"])
+            venue_df = venue_df.rename(columns={"date": "ds"})
+            venue_df["ds"] = pd.to_datetime(venue_df["ds"])
+            venue_df = venue_df[["ds", "name"]]
+            venue_df.columns = ["ds", "event"]
+            dataframe_name = venue.lower().replace(" ", "_").replace(",", "")
+            venue_df[dataframe_name] = 1
+            df = pd.merge(df, venue_df, how="left", on="ds", suffixes=('', '_venue'))
+            df[dataframe_name].fillna(0, inplace=True)
+            regressors_to_add.append((venue_df, dataframe_name))  # Append venue_df along with venue name for regressor addition
+        else:
+            holidays = pd.concat(objs=[holidays, venue_df], ignore_index=True) 
     # Fornebu concerts as regressor (Oslo)
-    fornebu_large_concerts_df = fetch_events("Karl Johan","Fornebu")
-    fornebu_large_concerts_df = pd.DataFrame(fornebu_large_concerts_df) 
-    fornebu_large_concerts_df = fornebu_large_concerts_df[["date","name"]]
-    fornebu_large_concerts_df = fornebu_large_concerts_df.drop_duplicates(subset='date')
+    # fornebu_large_concerts_df = fetch_events("Karl Johan","Fornebu")
+    # fornebu_large_concerts_df = pd.DataFrame(fornebu_large_concerts_df) 
+    # fornebu_large_concerts_df = fornebu_large_concerts_df[["date","name"]]
+    # fornebu_large_concerts_df = fornebu_large_concerts_df.drop_duplicates(subset='date')
  
-    fornebu_large_concerts_df["date"] = pd.to_datetime(
-        fornebu_large_concerts_df["date"]
-    )
-    # Rename the columns to match the existing DataFrame
-    fornebu_large_concerts_df.columns = ["ds", "event"]
-    # Create a new column for the event
-    fornebu_large_concerts_df["fornebu_large_concerts"] = 1
-    # Merge the new dataframe with the existing data
-    df = pd.merge(df, fornebu_large_concerts_df, how="left", on="ds")
-    # Fill missing values with 0
-    df["fornebu_large_concerts"].fillna(0, inplace=True)
+    # fornebu_large_concerts_df["date"] = pd.to_datetime(
+    #     fornebu_large_concerts_df["date"]
+    # )
+    # # Rename the columns to match the existing DataFrame
+    # fornebu_large_concerts_df.columns = ["ds", "event"]
+    # # Create a new column for the event
+    # fornebu_large_concerts_df["fornebu_large_concerts"] = 1
+    # # Merge the new dataframe with the existing data
+    # df = pd.merge(df, fornebu_large_concerts_df, how="left", on="ds")
+    # # Fill missing values with 0
+    # df["fornebu_large_concerts"].fillna(0, inplace=True)
 
-    # Ullevål big concerts regressor (Oslo)
-    ullevaal_big_football_games_df = fetch_events("Karl Johan","Ulleval")
-    ullevaal_big_football_games_df = pd.DataFrame(ullevaal_big_football_games_df)  
-    ullevaal_big_football_games_df["date"] = pd.to_datetime(
-        ullevaal_big_football_games_df["date"]
-    )
-    ullevaal_big_football_games_df = ullevaal_big_football_games_df.drop_duplicates(subset='date')
+    # # Ullevål big concerts regressor (Oslo)
+    # ullevaal_big_football_games_df = fetch_events("Karl Johan","Ulleval")
+    # ullevaal_big_football_games_df = pd.DataFrame(ullevaal_big_football_games_df)  
+    # ullevaal_big_football_games_df["date"] = pd.to_datetime(
+    #     ullevaal_big_football_games_df["date"]
+    # )
+    # ullevaal_big_football_games_df = ullevaal_big_football_games_df.drop_duplicates(subset='date')
 
-    # Rename the columns to match the existing DataFrame\
-    ullevaal_big_football_games_df = ullevaal_big_football_games_df[["date","name"]]
+    # # Rename the columns to match the existing DataFrame\
+    # ullevaal_big_football_games_df = ullevaal_big_football_games_df[["date","name"]]
 
-    ullevaal_big_football_games_df.columns = ["ds", "event"]
-    # Create a new column for the event
-    ullevaal_big_football_games_df["ullevaal_big_football_games"] = 1
-    # Merge the new dataframe with the existing data
-    df = pd.merge(df, ullevaal_big_football_games_df, how="left", on="ds")
-    # Fill missing values with 0
-    df["ullevaal_big_football_games"].fillna(0, inplace=True)
+    # ullevaal_big_football_games_df.columns = ["ds", "event"]
+    # # Create a new column for the event
+    # ullevaal_big_football_games_df["ullevaal_big_football_games"] = 1
+    # # Merge the new dataframe with the existing data
+    # df = pd.merge(df, ullevaal_big_football_games_df, how="left", on="ds")
+    # # Fill missing values with 0
+    # df["ullevaal_big_football_games"].fillna(0, inplace=True)
 
-    # Oslo Spektrum large concerts
-    oslo_spektrum = fetch_events("Karl Johan","Oslo Spektrum")
-    oslo_spectrum_large_df = pd.DataFrame(oslo_spektrum) 
-    oslo_spectrum_large_df = oslo_spectrum_large_df.rename(columns={"date": "ds"})
-    oslo_spectrum_large_df["ds"] = pd.to_datetime(oslo_spectrum_large_df["ds"])
-    oslo_spectrum_large_df = oslo_spectrum_large_df.drop_duplicates(subset='ds')
+    # # Oslo Spektrum large concerts
+    # oslo_spektrum = fetch_events("Karl Johan","Oslo Spektrum")
+    # oslo_spectrum_large_df = pd.DataFrame(oslo_spektrum) 
+    # oslo_spectrum_large_df = oslo_spectrum_large_df.rename(columns={"date": "ds"})
+    # oslo_spectrum_large_df["ds"] = pd.to_datetime(oslo_spectrum_large_df["ds"])
+    # oslo_spectrum_large_df = oslo_spectrum_large_df.drop_duplicates(subset='ds')
 
-    oslo_spectrum_large_df["oslo_spektrum_large_concert"] = 1
-    oslo_spectrum_large_df = oslo_spectrum_large_df[
-        ["ds", "name", "oslo_spektrum_large_concert"]
-    ]
+    # oslo_spectrum_large_df["oslo_spektrum_large_concert"] = 1
+    # oslo_spectrum_large_df = oslo_spectrum_large_df[
+    #     ["ds", "name", "oslo_spektrum_large_concert"]
+    # ]
 
-    # Merge the new dataframe with the existing data
-    df = pd.merge(df, oslo_spectrum_large_df, how="left", on=["ds"])
+    # # Merge the new dataframe with the existing data
+    # df = pd.merge(df, oslo_spectrum_large_df, how="left", on=["ds"])
 
-    # Fill missing values with 0
-    df["oslo_spektrum_large_concert"].fillna(0, inplace=True)
+    # # Fill missing values with 0
+    # df["oslo_spektrum_large_concert"].fillna(0, inplace=True)
 
-    # Sentrum scene concerts regressor
-    # Convert date strings to datetime format and create separate columns for each weekday
-    # after testing, it seems there is only an effect on sun, monn and tue
-    sentrum_scene_oslo_df = fetch_events("Karl Johan","Sentrum Scene")
-    sentrum_scene_oslo_df["date"] = pd.to_datetime(sentrum_scene_oslo_df["date"])
-    sentrum_scene_oslo_df = sentrum_scene_oslo_df.drop_duplicates(subset='date')
+    # # Sentrum scene concerts regressor
+    # # Convert date strings to datetime format and create separate columns for each weekday
+    # # after testing, it seems there is only an effect on sun, monn and tue
+    # sentrum_scene_oslo_df = fetch_events("Karl Johan","Sentrum Scene")
+    # sentrum_scene_oslo_df["date"] = pd.to_datetime(sentrum_scene_oslo_df["date"])
+    # sentrum_scene_oslo_df = sentrum_scene_oslo_df.drop_duplicates(subset='date')
 
-    # def is_campaign_active(ds, campaign_row):
-    #      date = pd.to_datetime(ds)
-    #      return 1 if pd.to_datetime(campaign_row['startdate']) <= date <= pd.to_datetime(campaign_row['enddate']) else 0
+    # # def is_campaign_active(ds, campaign_row):
+    # #      date = pd.to_datetime(ds)
+    # #      return 1 if pd.to_datetime(campaign_row['startdate']) <= date <= pd.to_datetime(campaign_row['enddate']) else 0
 
-    # Apply the function to the historical data
-    # for _, row in campaign_data.iterrows():
-    #     campaign_type = row["campaign_type__name"]
-    #     # if 'Red Bull Campaign Foodora/Wolt' in campaign_type:
+    # # Apply the function to the historical data
+    # # for _, row in campaign_data.iterrows():
+    # #     campaign_type = row["campaign_type__name"]
+    # #     # if 'Red Bull Campaign Foodora/Wolt' in campaign_type:
 
-    #     df[f"campaign_{campaign_type}"] = df["ds"].apply(
-    #         lambda ds: is_campaign_active(ds, row)
-    #     )
+    # #     df[f"campaign_{campaign_type}"] = df["ds"].apply(
+    # #         lambda ds: is_campaign_active(ds, row)
+    # #     )
 
-    # Create separate columns for each weekday
-    weekdays = ["Monday", "Tuesday", "Sunday"]
-    for day in weekdays:
-        sentrum_scene_oslo_df[f"sentrum_scene_concert_{day}"] = 0
+    # # Create separate columns for each weekday
+    # weekdays = ["Monday", "Tuesday", "Sunday"]
+    # for day in weekdays:
+    #     sentrum_scene_oslo_df[f"sentrum_scene_concert_{day}"] = 0
 
-    for index, row in sentrum_scene_oslo_df.iterrows():
-        day_of_week = row["date"].day_name()
-        sentrum_scene_oslo_df.at[index, f"sentrum_scene_concert_{day_of_week}"] = 1
+    # for index, row in sentrum_scene_oslo_df.iterrows():
+    #     day_of_week = row["date"].day_name()
+    #     sentrum_scene_oslo_df.at[index, f"sentrum_scene_concert_{day_of_week}"] = 1
 
-    df = pd.merge(df, sentrum_scene_oslo_df, how="left", left_on="ds", right_on="date")
+    # df = pd.merge(df, sentrum_scene_oslo_df, how="left", left_on="ds", right_on="date")
 
     df["high_weekend"] = df["ds"].apply(is_high_weekends)
     df["low_weekend"] = ~df["ds"].apply(is_high_weekends)
@@ -443,24 +475,31 @@ def karl_johan(prediction_category,restaurant,merged_data,historical_data,future
     #     m.add_regressor(f"campaign_{campaign_type}")
     # print(f"the extra regressor are : {m.extra_regressors}")
     # Add the Fornebu concerts regressor
-    m.add_regressor("fornebu_large_concerts")
-    # Add the Ullevåål big football games  regressor
-    m.add_regressor("ullevaal_big_football_games")
-    # Add the Osloe Spektrum regressor
-    m.add_regressor("oslo_spektrum_large_concert")
+    # m.add_regressor("fornebu_large_concerts")
+    # # Add the Ullevåål big football games  regressor
+    # m.add_regressor("ullevaal_big_football_games")
+    # # Add the Osloe Spektrum regressor
+    # m.add_regressor("oslo_spektrum_large_concert")
 
     # Sentrum scene
     # Add each weekday as a separate regressor
     weekdays = ["Monday", "Tuesday", "Sunday"]
-    for day in weekdays:
-        df[f"sentrum_scene_concert_{day}"].fillna(0, inplace=True)
-        m.add_regressor(f"sentrum_scene_concert_{day}")
+    # for day in weekdays:
+    #     df[f"sentrum_scene_concert_{day}"].fillna(0, inplace=True)
+    #     m.add_regressor(f"sentrum_scene_concert_{day}")
 
     # m.add_regressor('sunshine_amount', standardize=False)
 
     m.add_regressor("custom_regressor")
     # m.add_regressor('covid_restriction')
     m.add_regressor("closed_jan")
+    m.add_regressor('sunshine_amount', standardize=False)
+    m.add_regressor("opening_duration")
+
+    for event_df, regressor_name in regressors_to_add:
+        if 'event' in event_df.columns:
+            m.add_regressor(regressor_name)
+
     m.add_seasonality(
         name="monthly", period=30.5, fourier_order=2, condition_name="specific_month"
     )
@@ -570,6 +609,22 @@ def karl_johan(prediction_category,restaurant,merged_data,historical_data,future
     future["windspeed"] = merged_data["windspeed"]
     future["air_temperature"] = merged_data["air_temperature"]
 
+    future.fillna(
+        {"sunshine_amount": 0, "rain_sum": 0, "windspeed": 0, "air_temperature": 0},
+        inplace=True,
+    )
+    
+    for event_df, event_column in regressors_to_add:
+        if 'event' in event_df.columns:
+            event_df= event_df.drop_duplicates('ds')
+            future = pd.merge(
+                future,
+                event_df[["ds", event_column]],
+                how="left",
+                on="ds",
+            )
+            future[event_column].fillna(0, inplace=True)
+
     # Apply the future functions for weather regressions here
     future = heavy_rain_spring_weekend_future(future)
     future = heavy_rain_spring_weekday_future(future)
@@ -583,50 +638,50 @@ def karl_johan(prediction_category,restaurant,merged_data,historical_data,future
     future = calculate_days_30(future, last_working_day)
     # future = calculate_days_15(future, fifteenth_working_days)
     future["high_weekend"] = future["ds"].apply(is_high_weekends)
-    future = pd.merge(
-        future,
-        fornebu_large_concerts_df[["ds", "fornebu_large_concerts"]],
-        how="left",
-        on="ds",
-    )
-    # Fill missing values with 0
-    future["fornebu_large_concerts"].fillna(0, inplace=True)
+    # future = pd.merge(
+    #     future,
+    #     fornebu_large_concerts_df[["ds", "fornebu_large_concerts"]],
+    #     how="left",
+    #     on="ds",
+    # )
+    # # Fill missing values with 0
+    # future["fornebu_large_concerts"].fillna(0, inplace=True)
 
-    # Add Future df for Oslo Spektrum large concerts
-    # Merge with the events data
-    future = pd.merge(
-        future,
-        ullevaal_big_football_games_df[["ds", "ullevaal_big_football_games"]],
-        how="left",
-        on="ds",
-    )
-    # Fill missing values with 0
-    future["ullevaal_big_football_games"].fillna(0, inplace=True)
+    # # Add Future df for Oslo Spektrum large concerts
+    # # Merge with the events data
+    # future = pd.merge(
+    #     future,
+    #     ullevaal_big_football_games_df[["ds", "ullevaal_big_football_games"]],
+    #     how="left",
+    #     on="ds",
+    # )
+    # # Fill missing values with 0
+    # future["ullevaal_big_football_games"].fillna(0, inplace=True)
 
-    # Add Future df for Osloe Spektrum Large Concerts
-    # Merge with the events data
-    future = pd.merge(
-        future,
-        oslo_spectrum_large_df[["ds", "oslo_spektrum_large_concert"]],
-        how="left",
-        on="ds",
-    )
-    # Fill missing values with 0
-    future["oslo_spektrum_large_concert"].fillna(0, inplace=True)
+    # # Add Future df for Osloe Spektrum Large Concerts
+    # # Merge with the events data
+    # future = pd.merge(
+    #     future,
+    #     oslo_spectrum_large_df[["ds", "oslo_spektrum_large_concert"]],
+    #     how="left",
+    #     on="ds",
+    # )
+    # # Fill missing values with 0
+    # future["oslo_spektrum_large_concert"].fillna(0, inplace=True)
 
-    for day in weekdays:
-        # Merge the future dataframe with the sentrum_scene_oslo_df for the specific day
-        future = pd.merge(
-            future,
-            sentrum_scene_oslo_df[["date", f"sentrum_scene_concert_{day}"]],
-            how="left",
-            left_on="ds",
-            right_on="date",
-        )
-        # Fill missing values with 0
-        future[f"sentrum_scene_concert_{day}"].fillna(0, inplace=True)
+    # for day in weekdays:
+    #     # Merge the future dataframe with the sentrum_scene_oslo_df for the specific day
+    #     future = pd.merge(
+    #         future,
+    #         sentrum_scene_oslo_df[["date", f"sentrum_scene_concert_{day}"]],
+    #         how="left",
+    #         left_on="ds",
+    #         right_on="date",
+    #     )
+    #     # Fill missing values with 0
+    #     future[f"sentrum_scene_concert_{day}"].fillna(0, inplace=True)
         # Drop the date column
-        future.drop("date", axis=1, inplace=True)
+        # future.drop("date", axis=1, inplace=True)
 
     merged_data["ds"] = pd.to_datetime(merged_data["ds"], format="%Y", errors="coerce")
 
@@ -660,6 +715,7 @@ def karl_johan(prediction_category,restaurant,merged_data,historical_data,future
     if prediction_category != "hour":
         future["ds"] = future["ds"].dt.date
     future.fillna(0, inplace=True)
+    future = add_opening_hours(future, "Karl Johan",12, 17)
 
     return m, future, df
 

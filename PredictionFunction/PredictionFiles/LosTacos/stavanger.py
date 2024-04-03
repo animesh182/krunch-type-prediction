@@ -76,6 +76,9 @@ from PredictionFunction.Datasets.Regressors.weather_regressors import(
     non_heavy_rain_fall_weekend_future,
 
 )
+from PredictionFunction.utils.fetch_events import fetch_events
+from PredictionFunction.utils.openinghours import add_opening_hours
+
 def stavanger(prediction_category,restaurant,merged_data,historical_data,future_data):
     print("starting loc spec stavanger")
     sales_data_df = historical_data
@@ -177,6 +180,7 @@ def stavanger(prediction_category,restaurant,merged_data,historical_data,future_
     # df = heavy_rain_spring_weekday(df)
     # df = heavy_rain_spring_weekend(df)
     df = non_heavy_rain_fall_weekend(df)
+    df = add_opening_hours(df,"Stavanger",12,17)
     m = Prophet()
 
     ### Holidays and other repeating outliers
@@ -291,6 +295,39 @@ def stavanger(prediction_category,restaurant,merged_data,historical_data,future_
 
     df["christmas_shopping"] = df["ds"].apply(is_christmas_shopping)
 
+    stavanger_venues = {
+        "Nedre Strandgate","Martinique","Nærbø","Ræge Kirke", 
+        "Løkkeveien","University of Stavanger","Clarion Hotel Energy",
+        "Nordic Black Theatre","Oslo Concert Hall","Salt Langhuset",
+        "Vaisenhusgata","Campus Bjergsted","Fargegaten - Øvre Holmegate",
+        "Folken, Løkkeveien","Gamle Stavanger","Tou Scene","Bryne",
+        "Ølberg harbour","City Centre","Sangerlosjen","Zetlitz",
+        "Kinokino","Kongsgata","UIS Business School","Fiskepiren",
+
+    }
+
+    data = {'name':[], 'effect':[]}
+    for venue in stavanger_venues:
+        regressors_to_add = []
+        # for venue in karl_johan_venues:
+        venue_df = fetch_events("Stavanger", venue)
+        # event_holidays = pd.concat(objs=[event_holidays, venue_df], ignore_index=True)
+        # event_holidays.to_csv(f"{venue}_holidatest.csv")
+        if 'name' in venue_df.columns:
+            venue_df = venue_df.drop_duplicates('date')
+            venue_df["date"] = pd.to_datetime(venue_df["date"])
+            venue_df = venue_df.rename(columns={"date": "ds"})
+            venue_df["ds"] = pd.to_datetime(venue_df["ds"])
+            venue_df = venue_df[["ds", "name"]]
+            venue_df.columns = ["ds", "event"]
+            dataframe_name = venue.lower().replace(" ", "_").replace(",", "")
+            venue_df[dataframe_name] = 1
+            df = pd.merge(df, venue_df, how="left", on="ds", suffixes=('', '_venue'))
+            df[dataframe_name].fillna(0, inplace=True)
+            regressors_to_add.append((venue_df, dataframe_name))  # Append venue_df along with venue name for regressor addition
+        else:
+            holidays = pd.concat(objs=[holidays, venue_df], ignore_index=True)
+
     # function for calculating the days before and after the last workday
     def calculate_days(df, last_working_day):
         # Convert 'ds' column to datetime if it's not already
@@ -393,6 +430,12 @@ def stavanger(prediction_category,restaurant,merged_data,historical_data,future_
     # m.add_regressor("heavy_rain_spring_weekday")
     # m.add_regressor("heavy_rain_spring_weekend")
     m.add_regressor("non_heavy_rain_fall_weekend")
+    m.add_regressor("opening_duration")
+    m.add_regressor("sunshine_amount", standardize=False)
+
+    for event_df, regressor_name in regressors_to_add:
+        if 'event' in event_df.columns:
+            m.add_regressor(regressor_name)
 
     print("done with seasonalities")
     if prediction_category == "hour":
@@ -482,6 +525,20 @@ def stavanger(prediction_category,restaurant,merged_data,historical_data,future_
     future["sunshine_amount"] = merged_data["sunshine_amount"]
     future["windspeed"] = merged_data["windspeed"]
     future["air_temperature"] = merged_data["air_temperature"]
+    future.fillna(
+        {"sunshine_amount": 0, "rain_sum": 0, "windspeed": 0, "air_temperature": 0},
+        inplace=True,
+    )
+    for event_df, event_column in regressors_to_add:
+        if 'event' in event_df.columns:
+            event_df= event_df.drop_duplicates('ds')
+            future = pd.merge(
+                future,
+                event_df[["ds", event_column]],
+                how="left",
+                on="ds",
+            )
+            future[event_column].fillna(0, inplace=True)
     # future = warm_and_dry_future(future)
     # future = heavy_rain_fall_weekday_future(future)
     future = heavy_rain_fall_weekend_future(future)
@@ -490,6 +547,7 @@ def stavanger(prediction_category,restaurant,merged_data,historical_data,future_
     # future = heavy_rain_spring_weekday_future(future)
     # future = heavy_rain_spring_weekend_future(future)
     future = non_heavy_rain_fall_weekend_future(future)
+    future = add_opening_hours(future,"Stavanger",12,17)
     # Calculate the custom regressor values for the future dates
     future["ds"] = pd.to_datetime(future["ds"])
     future_date_mask = (future["ds"] >= start_date) & (future["ds"] <= end_date)
