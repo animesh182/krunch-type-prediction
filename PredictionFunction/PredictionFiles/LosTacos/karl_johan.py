@@ -81,12 +81,17 @@ from PredictionFunction.Datasets.Holidays.LosTacos.common_holidays import (
     first_weekend_christmas_school_vacation,
 )
 
-from PredictionFunction.utils.utils import calculate_days_30, calculate_days_15, custom_regressor
+from PredictionFunction.utils.utils import (
+    calculate_days_30,
+    calculate_days_15,
+    custom_regressor,
+)
 from PredictionFunction.utils.fetch_events import fetch_events
 from PredictionFunction.utils.openinghours import add_opening_hours
 
 # from Predictions.models import MarketingCampaigns
 import xgboost as xgb
+
 # from Predictions.models import MarketingCampaignTypes
 
 # from Predictions.models import MarketingCampaignTypes, MarketingCampaigns
@@ -99,7 +104,9 @@ from datetime import date
 # )
 
 
-def karl_johan(prediction_category,restaurant,merged_data,historical_data,future_data):
+def karl_johan(
+    prediction_category, restaurant, merged_data, historical_data, future_data
+):
     sales_data_df = historical_data
     sales_data_df = sales_data_df.rename(columns={"date": "ds"})
 
@@ -206,7 +213,7 @@ def karl_johan(prediction_category,restaurant,merged_data,historical_data,future
     # df = warm_dry_weather_spring(df)
     df = calculate_days_15(df, fifteenth_working_days)
     # df = non_heavy_rain_fall_weekend(df)
-    df = add_opening_hours(df, "Karl Johan",12, 17)
+    df = add_opening_hours(df, "Karl Johan", 12, 17)
 
     m = Prophet()
 
@@ -298,21 +305,27 @@ def karl_johan(prediction_category,restaurant,merged_data,historical_data,future
     df["christmas_shopping"] = df["ds"].apply(is_christmas_shopping)
 
     karl_johan_venues = {
-       "Oslo Spektrum", "Sentrum Scene", 
-        "Fornebu", "Ulleval", 
-        "Rockefeller", "Cosmopolite, Oslo","Oslo City","Oslo Konserthus", 
-        "Nordic Black Theatre","Oslo Concert Hall","Salt Langhuset",
+        "Oslo Spektrum",
+        "Sentrum Scene",
+        "Fornebu",
+        "Ulleval",
+        "Rockefeller",
+        "Cosmopolite, Oslo",
+        "Oslo City",
+        "Oslo Konserthus",
+        "Nordic Black Theatre",
+        "Oslo Concert Hall",
+        "Salt Langhuset",
     }
 
-    data = {'name':[], 'effect':[]}
+    data = {"name": [], "effect": []}
     regressors_to_add = []
     for venue in karl_johan_venues:
         # for venue in karl_johan_venues:
         venue_df = fetch_events("Oslo Torggata", venue)
         # event_holidays = pd.concat(objs=[event_holidays, venue_df], ignore_index=True)
-        # event_holidays.to_csv(f"{venue}_holidatest.csv")
-        if 'name' in venue_df.columns:
-            venue_df = venue_df.drop_duplicates('date')
+        if "name" in venue_df.columns:
+            venue_df = venue_df.drop_duplicates("date")
             venue_df["date"] = pd.to_datetime(venue_df["date"])
             venue_df = venue_df.rename(columns={"date": "ds"})
             venue_df["ds"] = pd.to_datetime(venue_df["ds"])
@@ -320,17 +333,19 @@ def karl_johan(prediction_category,restaurant,merged_data,historical_data,future
             venue_df.columns = ["ds", "event"]
             dataframe_name = venue.lower().replace(" ", "_").replace(",", "")
             venue_df[dataframe_name] = 1
-            df = pd.merge(df, venue_df, how="left", on="ds", suffixes=('', '_venue'))
+            df = pd.merge(df, venue_df, how="left", on="ds", suffixes=("", "_venue"))
             df[dataframe_name].fillna(0, inplace=True)
-            regressors_to_add.append((venue_df, dataframe_name))  # Append venue_df along with venue name for regressor addition
+            regressors_to_add.append(
+                (venue_df, dataframe_name)
+            )  # Append venue_df along with venue name for regressor addition
         else:
-            holidays = pd.concat(objs=[holidays, venue_df], ignore_index=True) 
+            holidays = pd.concat(objs=[holidays, venue_df], ignore_index=True)
     # Fornebu concerts as regressor (Oslo)
     # fornebu_large_concerts_df = fetch_events("Karl Johan","Fornebu")
-    # fornebu_large_concerts_df = pd.DataFrame(fornebu_large_concerts_df) 
+    # fornebu_large_concerts_df = pd.DataFrame(fornebu_large_concerts_df)
     # fornebu_large_concerts_df = fornebu_large_concerts_df[["date","name"]]
     # fornebu_large_concerts_df = fornebu_large_concerts_df.drop_duplicates(subset='date')
- 
+
     # fornebu_large_concerts_df["date"] = pd.to_datetime(
     #     fornebu_large_concerts_df["date"]
     # )
@@ -345,7 +360,7 @@ def karl_johan(prediction_category,restaurant,merged_data,historical_data,future
 
     # # Ullevål big concerts regressor (Oslo)
     # ullevaal_big_football_games_df = fetch_events("Karl Johan","Ulleval")
-    # ullevaal_big_football_games_df = pd.DataFrame(ullevaal_big_football_games_df)  
+    # ullevaal_big_football_games_df = pd.DataFrame(ullevaal_big_football_games_df)
     # ullevaal_big_football_games_df["date"] = pd.to_datetime(
     #     ullevaal_big_football_games_df["date"]
     # )
@@ -364,7 +379,7 @@ def karl_johan(prediction_category,restaurant,merged_data,historical_data,future
 
     # # Oslo Spektrum large concerts
     # oslo_spektrum = fetch_events("Karl Johan","Oslo Spektrum")
-    # oslo_spectrum_large_df = pd.DataFrame(oslo_spektrum) 
+    # oslo_spectrum_large_df = pd.DataFrame(oslo_spektrum)
     # oslo_spectrum_large_df = oslo_spectrum_large_df.rename(columns={"date": "ds"})
     # oslo_spectrum_large_df["ds"] = pd.to_datetime(oslo_spectrum_large_df["ds"])
     # oslo_spectrum_large_df = oslo_spectrum_large_df.drop_duplicates(subset='ds')
@@ -493,11 +508,11 @@ def karl_johan(prediction_category,restaurant,merged_data,historical_data,future
     m.add_regressor("custom_regressor")
     # m.add_regressor('covid_restriction')
     m.add_regressor("closed_jan")
-    m.add_regressor('sunshine_amount', standardize=False)
+    m.add_regressor("sunshine_amount", standardize=False)
     m.add_regressor("opening_duration")
 
     for event_df, regressor_name in regressors_to_add:
-        if 'event' in event_df.columns:
+        if "event" in event_df.columns:
             m.add_regressor(regressor_name)
 
     m.add_seasonality(
@@ -613,10 +628,10 @@ def karl_johan(prediction_category,restaurant,merged_data,historical_data,future
         {"sunshine_amount": 0, "rain_sum": 0, "windspeed": 0, "air_temperature": 0},
         inplace=True,
     )
-    
+
     for event_df, event_column in regressors_to_add:
-        if 'event' in event_df.columns:
-            event_df= event_df.drop_duplicates('ds')
+        if "event" in event_df.columns:
+            event_df = event_df.drop_duplicates("ds")
             future = pd.merge(
                 future,
                 event_df[["ds", event_column]],
@@ -680,8 +695,8 @@ def karl_johan(prediction_category,restaurant,merged_data,historical_data,future
     #     )
     #     # Fill missing values with 0
     #     future[f"sentrum_scene_concert_{day}"].fillna(0, inplace=True)
-        # Drop the date column
-        # future.drop("date", axis=1, inplace=True)
+    # Drop the date column
+    # future.drop("date", axis=1, inplace=True)
 
     merged_data["ds"] = pd.to_datetime(merged_data["ds"], format="%Y", errors="coerce")
 
@@ -715,10 +730,14 @@ def karl_johan(prediction_category,restaurant,merged_data,historical_data,future
     if prediction_category != "hour":
         future["ds"] = future["ds"].dt.date
     future.fillna(0, inplace=True)
-    future = add_opening_hours(future, "Karl Johan",12, 17)
+    future = add_opening_hours(future, "Karl Johan", 12, 17)
 
     return m, future, df
 
 
-def location_function(prediction_category,restaurant,merged_data,historical_data,future_data):
-    return karl_johan(prediction_category,restaurant,merged_data,historical_data,future_data)
+def location_function(
+    prediction_category, restaurant, merged_data, historical_data, future_data
+):
+    return karl_johan(
+        prediction_category, restaurant, merged_data, historical_data, future_data
+    )

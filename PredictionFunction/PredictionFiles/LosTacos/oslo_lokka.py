@@ -58,19 +58,25 @@ from PredictionFunction.Datasets.Holidays.LosTacos.common_holidays import (
     first_weekend_christmas_school_vacation,
 )
 
-from PredictionFunction.utils.utils import calculate_days_30, calculate_days_15, custom_regressor
+from PredictionFunction.utils.utils import (
+    calculate_days_30,
+    calculate_days_15,
+    custom_regressor,
+)
 from PredictionFunction.utils.fetch_events import fetch_events
 from PredictionFunction.utils.openinghours import add_opening_hours
 
 
-def oslo_lokka_jtorget_smestad_torggata(prediction_category,restaurant,merged_data,historical_data,future_data):
+def oslo_lokka_jtorget_smestad_torggata(
+    prediction_category, restaurant, merged_data, historical_data, future_data
+):
     sales_data_df = historical_data
     sales_data_df = sales_data_df.rename(columns={"date": "ds"})
 
     future_data = future_data.rename(columns={"date": "ds"})
 
     merged_data = merged_data.rename(columns={"date": "ds"})
-    
+
     sales_data_df["ds"] = pd.to_datetime(sales_data_df["ds"])
     sales_data_df["ds"] = pd.to_datetime(sales_data_df["ds"])
 
@@ -203,7 +209,7 @@ def oslo_lokka_jtorget_smestad_torggata(prediction_category,restaurant,merged_da
     df["ds"] = pd.to_datetime(df["ds"])
     # Calculate the week number for each date
     df["week_number"] = df["ds"].dt.isocalendar().week
-    df= add_opening_hours(df,"Oslo Lokka",12,17)
+    df = add_opening_hours(df, "Oslo Lokka", 12, 17)
 
     # Convert 'ds' column to datetime if it is not already
     df["ds"] = pd.to_datetime(df["ds"])
@@ -247,19 +253,22 @@ def oslo_lokka_jtorget_smestad_torggata(prediction_category,restaurant,merged_da
     df["christmas_shopping"] = df["ds"].apply(is_christmas_shopping)
 
     oslo_lokka_venues = {
-            "Rockefeller", "Cosmopolite, Oslo","Parkteatret Scene",
-            "Nordic Black Theatre","Oslo Concert Hall","Salt Langhuset",
-        }
+        "Rockefeller",
+        "Cosmopolite, Oslo",
+        "Parkteatret Scene",
+        "Nordic Black Theatre",
+        "Oslo Concert Hall",
+        "Salt Langhuset",
+    }
 
-    data = {'name':[], 'effect':[]}
+    data = {"name": [], "effect": []}
     regressors_to_add = []
     for venue in oslo_lokka_venues:
         # for venue in karl_johan_venues:
         venue_df = fetch_events("Oslo Torggata", venue)
         # event_holidays = pd.concat(objs=[event_holidays, venue_df], ignore_index=True)
-        # event_holidays.to_csv(f"{venue}_holidatest.csv")
-        if 'name' in venue_df.columns:
-            venue_df = venue_df.drop_duplicates('date')
+        if "name" in venue_df.columns:
+            venue_df = venue_df.drop_duplicates("date")
             venue_df["date"] = pd.to_datetime(venue_df["date"])
             venue_df = venue_df.rename(columns={"date": "ds"})
             venue_df["ds"] = pd.to_datetime(venue_df["ds"])
@@ -267,11 +276,13 @@ def oslo_lokka_jtorget_smestad_torggata(prediction_category,restaurant,merged_da
             venue_df.columns = ["ds", "event"]
             dataframe_name = venue.lower().replace(" ", "_").replace(",", "")
             venue_df[dataframe_name] = 1
-            df = pd.merge(df, venue_df, how="left", on="ds", suffixes=('', '_venue'))
+            df = pd.merge(df, venue_df, how="left", on="ds", suffixes=("", "_venue"))
             df[dataframe_name].fillna(0, inplace=True)
-            regressors_to_add.append((venue_df, dataframe_name))  # Append venue_df along with venue name for regressor addition
+            regressors_to_add.append(
+                (venue_df, dataframe_name)
+            )  # Append venue_df along with venue name for regressor addition
         else:
-            holidays = pd.concat(objs=[holidays, venue_df], ignore_index=True) 
+            holidays = pd.concat(objs=[holidays, venue_df], ignore_index=True)
 
     ## calculating the paydays and the days before and after. Used in regressions
 
@@ -338,7 +349,7 @@ def oslo_lokka_jtorget_smestad_torggata(prediction_category,restaurant,merged_da
     m.add_regressor("sunshine_amount", standardize=False)
 
     for event_df, regressor_name in regressors_to_add:
-        if 'event' in event_df.columns:
+        if "event" in event_df.columns:
             m.add_regressor(regressor_name)
     # m.add_regressor('covid_restriction')
     m.add_seasonality(
@@ -480,15 +491,15 @@ def oslo_lokka_jtorget_smestad_torggata(prediction_category,restaurant,merged_da
     future["sunshine_amount"] = merged_data["sunshine_amount"]
     future["windspeed"] = merged_data["windspeed"]
     future["air_temperature"] = merged_data["air_temperature"]
-    
+
     future.fillna(
         {"sunshine_amount": 0, "rain_sum": 0, "windspeed": 0, "air_temperature": 0},
         inplace=True,
     )
 
     for event_df, event_column in regressors_to_add:
-        if 'event' in event_df.columns:
-            event_df= event_df.drop_duplicates('ds')
+        if "event" in event_df.columns:
+            event_df = event_df.drop_duplicates("ds")
             future = pd.merge(
                 future,
                 event_df[["ds", event_column]],
@@ -496,7 +507,7 @@ def oslo_lokka_jtorget_smestad_torggata(prediction_category,restaurant,merged_da
                 on="ds",
             )
             future[event_column].fillna(0, inplace=True)
-            
+
     future = warm_and_dry_future(future)
     future = heavy_rain_fall_weekday_future(future)
     future = heavy_rain_fall_weekend_future(future)
@@ -505,11 +516,15 @@ def oslo_lokka_jtorget_smestad_torggata(prediction_category,restaurant,merged_da
     future = heavy_rain_spring_weekday_future(future)
     future = heavy_rain_spring_weekend_future(future)
     future = non_heavy_rain_fall_weekend_future(future)
-    future= add_opening_hours(future,"Oslo Lokka",12,17)
+    future = add_opening_hours(future, "Oslo Lokka", 12, 17)
     future.fillna(0, inplace=True)
 
     return m, future, df
 
 
-def location_function(prediction_category,restaurant,merged_data,historical_data,future_data):
-    return oslo_lokka_jtorget_smestad_torggata(prediction_category,restaurant,merged_data,historical_data,future_data)
+def location_function(
+    prediction_category, restaurant, merged_data, historical_data, future_data
+):
+    return oslo_lokka_jtorget_smestad_torggata(
+        prediction_category, restaurant, merged_data, historical_data, future_data
+    )

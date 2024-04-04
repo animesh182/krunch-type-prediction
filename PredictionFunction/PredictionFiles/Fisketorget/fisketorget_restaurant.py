@@ -7,9 +7,16 @@ from PredictionFunction.Datasets.Holidays.LosTacos.dataset_holidays import (
     last_working_day,
 )
 import logging
-from PredictionFunction.utils.utils import calculate_days_30, calculate_days_15,custom_regressor
+from PredictionFunction.utils.utils import (
+    calculate_days_30,
+    calculate_days_15,
+    custom_regressor,
+)
+
 # from PredictionFunction.Datasets.OpeningHours.lostacos_opening_hours import restaurant_opening_hours
-from PredictionFunction.Datasets.Seasonalities.LosTacos.weekly_seasonality import weekly_seasonalities
+from PredictionFunction.Datasets.Seasonalities.LosTacos.weekly_seasonality import (
+    weekly_seasonalities,
+)
 from PredictionFunction.Datasets.Regressors.general_regressors import (
     is_fellesferie_stavanger,
     is_may,
@@ -59,7 +66,7 @@ from PredictionFunction.Datasets.Holidays.LosTacos.common_holidays import (
     first_weekend_christmas_school_vacation,
 )
 
-from PredictionFunction.Datasets.Regressors.weather_regressors import(
+from PredictionFunction.Datasets.Regressors.weather_regressors import (
     # warm_dry_weather_spring,
     # warm_and_dry_future,
     # heavy_rain_fall_weekday,
@@ -76,12 +83,14 @@ from PredictionFunction.Datasets.Regressors.weather_regressors import(
     # heavy_rain_spring_weekend_future,
     non_heavy_rain_fall_weekend,
     non_heavy_rain_fall_weekend_future,
-
 )
 from PredictionFunction.utils.openinghours import add_opening_hours
 from PredictionFunction.utils.fetch_events import fetch_events
 
-def fisketorget_restaurant(prediction_category,restaurant,merged_data,historical_data,future_data):
+
+def fisketorget_restaurant(
+    prediction_category, restaurant, merged_data, historical_data, future_data
+):
     sales_data_df = historical_data
     sales_data_df = sales_data_df.rename(columns={"date": "ds"})
     sales_data_df["ds"] = pd.to_datetime(sales_data_df["ds"])
@@ -181,7 +190,7 @@ def fisketorget_restaurant(prediction_category,restaurant,merged_data,historical
     # df = heavy_rain_spring_weekday(df)
     # df = heavy_rain_spring_weekend(df)
     df = non_heavy_rain_fall_weekend(df)
-    df = add_opening_hours(df, "Restaurant",13, 13)
+    df = add_opening_hours(df, "Restaurant", 13, 13)
 
     m = Prophet()
 
@@ -289,19 +298,22 @@ def fisketorget_restaurant(prediction_category,restaurant,merged_data,historical
     df["christmas_shopping"] = df["ds"].apply(is_christmas_shopping)
 
     fisketorget_venues = {
-        "Fiskepiren","Folken, Løkkeveien","Zetlitz","Cementen, Stavanger", 
-        "DNB Arena","Stavanger Konserthus","Stavanger Forum",
+        "Fiskepiren",
+        "Folken, Løkkeveien",
+        "Zetlitz",
+        "Cementen, Stavanger",
+        "DNB Arena",
+        "Stavanger Konserthus",
+        "Stavanger Forum",
     }
 
-    data = {'name':[], 'effect':[]}
+    data = {"name": [], "effect": []}
     regressors_to_add = []
     for venue in fisketorget_venues:
         # for venue in karl_johan_venues:
         venue_df = fetch_events("Stavanger", venue)
-        # event_holidays = pd.concat(objs=[event_holidays, venue_df], ignore_index=True)
-        # event_holidays.to_csv(f"{venue}_holidatest.csv")
-        if 'name' in venue_df.columns:
-            venue_df = venue_df.drop_duplicates('date')
+        if "name" in venue_df.columns:
+            venue_df = venue_df.drop_duplicates("date")
             venue_df["date"] = pd.to_datetime(venue_df["date"])
             venue_df = venue_df.rename(columns={"date": "ds"})
             venue_df["ds"] = pd.to_datetime(venue_df["ds"])
@@ -309,12 +321,13 @@ def fisketorget_restaurant(prediction_category,restaurant,merged_data,historical
             venue_df.columns = ["ds", "event"]
             dataframe_name = venue.lower().replace(" ", "_").replace(",", "")
             venue_df[dataframe_name] = 1
-            df = pd.merge(df, venue_df, how="left", on="ds", suffixes=('', '_venue'))
+            df = pd.merge(df, venue_df, how="left", on="ds", suffixes=("", "_venue"))
             df[dataframe_name].fillna(0, inplace=True)
-            regressors_to_add.append((venue_df, dataframe_name))  # Append venue_df along with venue name for regressor addition
+            regressors_to_add.append(
+                (venue_df, dataframe_name)
+            )  # Append venue_df along with venue name for regressor addition
         else:
             holidays = pd.concat(objs=[holidays, venue_df], ignore_index=True)
-    
 
     def calculate_days(df, last_working_day):
         # Convert 'ds' column to datetime if it's not already
@@ -324,10 +337,14 @@ def fisketorget_restaurant(prediction_category,restaurant,merged_data,historical
         last_working_day = pd.to_datetime(pd.Series(last_working_day))
 
         df["days_since_last"] = df["ds"].apply(
-            lambda x: min([abs(x - y).days for y in last_working_day if x >= y],default=0)
+            lambda x: min(
+                [abs(x - y).days for y in last_working_day if x >= y], default=0
+            )
         )
         df["days_until_next"] = df["ds"].apply(
-            lambda x: min([abs(x - y).days for y in last_working_day if x <= y],default=0)
+            lambda x: min(
+                [abs(x - y).days for y in last_working_day if x <= y], default=0
+            )
         )
 
         # Set 'days_since_last' and 'days_until_next' to 0 for days that are not within the -5 to +5 range
@@ -421,7 +438,7 @@ def fisketorget_restaurant(prediction_category,restaurant,merged_data,historical
     m.add_regressor("opening_duration")
     m.add_regressor("sunshine_amount", standardize=False)
     for event_df, regressor_name in regressors_to_add:
-        if 'event' in event_df.columns:
+        if "event" in event_df.columns:
             m.add_regressor(regressor_name)
 
     print("done with seasonalities")
@@ -486,7 +503,6 @@ def fisketorget_restaurant(prediction_category,restaurant,merged_data,historical
 
     future["cluster_label"] = future["ds"].apply(get_cluster_label)
 
-
     future["sunshine_amount"] = merged_data["sunshine_amount"]
 
     # add the last working day and the +/- 5 days
@@ -518,8 +534,8 @@ def fisketorget_restaurant(prediction_category,restaurant,merged_data,historical
     )
 
     for event_df, event_column in regressors_to_add:
-        if 'event' in event_df.columns:
-            event_df= event_df.drop_duplicates('ds')
+        if "event" in event_df.columns:
+            event_df = event_df.drop_duplicates("ds")
             future = pd.merge(
                 future,
                 event_df[["ds", event_column]],
@@ -536,7 +552,7 @@ def fisketorget_restaurant(prediction_category,restaurant,merged_data,historical
     # future = heavy_rain_spring_weekday_future(future)
     # future = heavy_rain_spring_weekend_future(future)
     future = non_heavy_rain_fall_weekend_future(future)
-    future = add_opening_hours(future, "Restaurant",13, 13)
+    future = add_opening_hours(future, "Restaurant", 13, 13)
     # Calculate the custom regressor values for the future dates
     future["ds"] = pd.to_datetime(future["ds"])
     future_date_mask = (future["ds"] >= start_date) & (future["ds"] <= end_date)
@@ -551,5 +567,10 @@ def fisketorget_restaurant(prediction_category,restaurant,merged_data,historical
     future.fillna(0, inplace=True)
     return m, future, df
 
-def location_function(prediction_category,restaurant,merged_data,historical_data,future_data):
-    return fisketorget_restaurant(prediction_category,restaurant,merged_data,historical_data,future_data)
+
+def location_function(
+    prediction_category, restaurant, merged_data, historical_data, future_data
+):
+    return fisketorget_restaurant(
+        prediction_category, restaurant, merged_data, historical_data, future_data
+    )
