@@ -127,29 +127,43 @@ def sales_without_effect(company,start_date,end_date,alcohol_reference_restauran
     daily_sales = actual_trondheim_sales.groupby(actual_trondheim_sales['gastronomic_day'].dt.date)['total_net'].sum().reset_index()
     daily_sales['gastronomic_day'] = pd.to_datetime(daily_sales['gastronomic_day'])
 
-    # Calculate average sales for each day of the week
-    average_sales_per_day = {}
-    for day in range(7):
-        day_sales = daily_sales[daily_sales['gastronomic_day'].dt.dayofweek == day]
-        average_sales_per_day[day] = day_sales['total_net'].mean()
-
-    # Calculate average sales for each month
-    average_sales_per_month = {}
+    # Calculate average sales for Saturdays in each month
+    average_sales_saturday_per_month = {}
     for month in range(1, 13):
-        month_sales = daily_sales[daily_sales['gastronomic_day'].dt.month == month]
-        average_sales_per_month[month] = month_sales['total_net'].mean()
+        month_saturdays = daily_sales[(daily_sales['gastronomic_day'].dt.month == month) & 
+                                    (daily_sales['gastronomic_day'].dt.dayofweek == 5)]
+        average_sales_saturday_per_month[month] = month_saturdays['total_net'].mean()
 
-    # Calculate scales
+    # Calculate scales for each day of the week in each month, relative to Saturday's sales
     scales = {}
+    february_scales = {}
     for day in range(7):
         for month in range(1, 13):
             key = (day, month)
-            scales[key] = average_sales_per_month[month] / average_sales_per_day[day] if average_sales_per_day[day] != 0 else 1
+            if month in [2, 3]:
+                if day == 5:  # If the day is Saturday
+                    scales[key] = 1
+                else:
+                    saturday_sales = average_sales_saturday_per_month[month]
+                    day_sales = daily_sales[(daily_sales['gastronomic_day'].dt.dayofweek == day) &
+                                            (daily_sales['gastronomic_day'].dt.month == month)]
+                    if saturday_sales != 0 and not day_sales.empty:
+                        scales[key] =  day_sales['total_net'].mean() / saturday_sales 
+                    else:
+                        scales[key] = 1
+                if month == 2:
+                    february_scales[key] = scales[key]
+            else:
+                scales[key] = february_scales.get((day, 2), 1)
+                
+    for day in range(7):
+        scales[(day, 1)] = february_scales.get((day, 2), 1)
 
-    # Apply scales to sales data
+    # Apply the new scales to the sales data
     final_sales_grouped['day_of_week'] = final_sales_grouped['gastronomic_day'].dt.dayofweek
     final_sales_grouped['month'] = final_sales_grouped['gastronomic_day'].dt.month
-    final_sales_grouped['scaling_factor'] = final_sales_grouped.apply(lambda row: scales[(row['day_of_week'], row['month'])], axis=1)
+    final_sales_grouped['scaling_factor'] = final_sales_grouped.apply(
+        lambda row: scales[(row['day_of_week'], row['month'])], axis=1)
     final_sales_grouped['scaled_total_net'] = final_sales_grouped['total_net'] * final_sales_grouped['scaling_factor']
 #------------------------Get all the event Names for reference locations and their effects on the reference restaurant forecasts-------------------------------------------
     # events = Events.objects.filter(
