@@ -312,8 +312,8 @@ def oslo_torggata(prediction_category,restaurant,merged_data,historical_data,fut
     }
 
     data = {'name':[], 'effect':[]}
+    regressors_to_add = []
     for venue in oslo_torggata_venues:
-        regressors_to_add = []
         # for venue in karl_johan_venues:
         venue_df = fetch_events("Oslo Torggata", venue)
         # event_holidays = pd.concat(objs=[event_holidays, venue_df], ignore_index=True)

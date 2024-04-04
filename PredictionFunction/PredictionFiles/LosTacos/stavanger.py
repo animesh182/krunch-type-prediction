@@ -307,8 +307,8 @@ def stavanger(prediction_category,restaurant,merged_data,historical_data,future_
     }
 
     data = {'name':[], 'effect':[]}
+    regressors_to_add = []
     for venue in stavanger_venues:
-        regressors_to_add = []
         # for venue in karl_johan_venues:
         venue_df = fetch_events("Stavanger", venue)
         # event_holidays = pd.concat(objs=[event_holidays, venue_df], ignore_index=True)
