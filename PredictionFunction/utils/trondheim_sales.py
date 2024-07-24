@@ -123,7 +123,7 @@ def sales_without_effect(
     # get actual sales of food and alcohol in trondheim for a month---------------------------------------------------------------
     actual_sales_alcohol = actual_trondheim_sales[
         actual_trondheim_sales["article_supergroup"].isin(article_supergroup_values)
-        & (actual_trondheim_sales["gastronomic_day"].dt.month == 2)
+        & (actual_trondheim_sales["gastronomic_day"].dt.month == 3)
     ]
     average_sales_new_alcohol = (
         actual_sales_alcohol.groupby(["gastronomic_day", "take_out"])["total_net"]
@@ -131,11 +131,11 @@ def sales_without_effect(
         .reset_index()
     )
     actual_alcohol_sum = average_sales_new_alcohol["total_net"].sum()
-    print(f"actual alcohol sales for trondheim in feb is {actual_alcohol_sum}")
+    logging.info(f"actual alcohol sales for trondheim in feb is {actual_alcohol_sum}")
 
     actual_sales_food = actual_trondheim_sales[
         ~actual_trondheim_sales["article_supergroup"].isin(article_supergroup_values)
-        & (actual_trondheim_sales["gastronomic_day"].dt.month == 2)
+        & (actual_trondheim_sales["gastronomic_day"].dt.month == 3)
     ]
     average_sales_new_food = (
         actual_sales_food.groupby(["gastronomic_day", "take_out"])["total_net"]
@@ -143,7 +143,7 @@ def sales_without_effect(
         .reset_index()
     )
     actual_food_sum = average_sales_new_food["total_net"].sum()
-    print(f"actual food sales for trondheim in feb is {actual_food_sum}")
+    logging.info(f"actual food sales for trondheim in feb is {actual_food_sum}")
 
     # get sales of food and alcohol in reference restaurant for a month------------------------------------------------------
     reference_sales = filtered_sales_reference
@@ -154,13 +154,13 @@ def sales_without_effect(
         reference_alcohol_sales["gastronomic_day"]
     )
     feb_alcohol_sales = reference_alcohol_sales[
-        reference_alcohol_sales["gastronomic_day"].dt.month == 2
+        reference_alcohol_sales["gastronomic_day"].dt.month == 3
     ]
     sums_per_feb_alcohol = feb_alcohol_sales.groupby(
         feb_alcohol_sales["gastronomic_day"].dt.year
     )["total_net"].sum()
     average_sum_feb_alcohol = sums_per_feb_alcohol.mean()
-    print(f"actual alcohol sales for reference in feb is {average_sum_feb_alcohol}")
+    logging.info(f"actual alcohol sales for reference in feb is {average_sum_feb_alcohol}")
 
     reference_food_sales = reference_sales[
         ~reference_sales["article_supergroup"].isin(article_supergroup_values)
@@ -169,19 +169,19 @@ def sales_without_effect(
         reference_food_sales["gastronomic_day"]
     )
     feb_food_sales = reference_food_sales[
-        reference_food_sales["gastronomic_day"].dt.month == 2
+        reference_food_sales["gastronomic_day"].dt.month == 3
     ]
     sums_per_feb_food = feb_food_sales.groupby(
         feb_food_sales["gastronomic_day"].dt.year
     )["total_net"].sum()
     average_sum_feb_food = sums_per_feb_food.mean()
-    print(f"actual food sales for reference in feb is {average_sum_feb_food}")
+    logging.info(f"actual food sales for reference in feb is {average_sum_feb_food}")
     # ----------------------------------------------------------------------------------------------------------------------------
     scale_factor_for_food = float(actual_food_sum) / average_sum_feb_food
     scale_factor_for_alcohol = float(actual_alcohol_sum) / average_sum_feb_alcohol
 
-    print(f"Scale factor for food is {scale_factor_for_food}")
-    print(f"Scale factor for alcohol is {scale_factor_for_alcohol}")
+    logging.info(f"Scale factor for food is {scale_factor_for_food}")
+    logging.info(f"Scale factor for alcohol is {scale_factor_for_alcohol}")
     reference_alcohol_sales["total_net"] = reference_alcohol_sales["total_net"].astype(
         float
     ) * float(scale_factor_for_alcohol)
@@ -190,6 +190,9 @@ def sales_without_effect(
     ) * float(scale_factor_for_food)
 
     final_scaled_scales = pd.concat([reference_alcohol_sales, reference_food_sales])
+    final_scaled_scales['gastronomic_day'] =pd.to_datetime(final_scaled_scales['gastronomic_day'])
+    final_scaled_scales.loc[final_scaled_scales['gastronomic_day'].dt.dayofweek == 5, 'total_net'] *= 0.4
+    final_scaled_scales.loc[final_scaled_scales['gastronomic_day'].dt.dayofweek == 4, 'total_net'] *= 0.5
     final_sales_grouped = (
         final_scaled_scales.groupby(["gastronomic_day", "take_out"])["total_net"]
         .sum()
@@ -233,13 +236,14 @@ def sales_without_effect(
                         scales[key] = day_sales["total_net"].mean() / saturday_sales
                     else:
                         scales[key] = 1
-                if month == 2:
+                if month == 3:
                     february_scales[key] = scales[key]
             else:
-                scales[key] = february_scales.get((day, 2), 1)
+                scales[key] = february_scales.get((day, 3), 1)
 
     for day in range(7):
-        scales[(day, 1)] = february_scales.get((day, 2), 1)
+        scales[(day, 1)] = february_scales.get((day, 3), 1)
+        scales[(day, 2)] = february_scales.get((day, 3), 1)
 
     # Apply the new scales to the sales data
     final_sales_grouped["day_of_week"] = final_sales_grouped[
@@ -279,6 +283,7 @@ def sales_without_effect(
         "end_date",
         "event_category_id",
         "location_id",
+        "created_at"
     ]
 
     matching_events = []

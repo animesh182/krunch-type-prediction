@@ -12,12 +12,15 @@ from PredictionFunction.PredictionTypes.take_out_data_prep import (
 )
 from PredictionFunction.predict import predict
 from PredictionFunction.save_to_db import save_to_db
+import psycopg2
+from PredictionFunction.utils.params import params
+from datetime import timedelta
 
 
 async def main(mytimer: func.TimerRequest) -> None:
     utc_timestamp = datetime.utcnow().replace(tzinfo=timezone.utc).isoformat()
-    start_date = "2021-01-01"
-    end_date = datetime.now().strftime("%Y-%m-%d")
+    start_date = "2021-09-01"
+    # end_date = datetime.now().strftime("%Y-%m-%d")
     prediction_category = "type"
     # prediction category is either hour, type, alcohol or day
     company = "Los Tacos"
@@ -28,6 +31,20 @@ async def main(mytimer: func.TimerRequest) -> None:
         restaurant = instance["Restaurant"]
         city = instance["City"]
         company = instance["Company"]
+        with psycopg2.connect(**params) as conn:
+            with conn.cursor() as cursor:
+                end_date_query = '''
+                SELECT MAX(gastronomic_day)
+                FROM public."SalesData"
+                WHERE restaurant = %s
+            '''
+                cursor.execute(end_date_query,(restaurant,))
+                latest_gastronomic_day = cursor.fetchone()[0]
+                if latest_gastronomic_day:
+                    latest_date = latest_gastronomic_day - timedelta(days=1)
+                    end_date= latest_date.strftime("%Y-%m-%d")
+        conn.close()
+        logging.info(end_date)
         restaurant_func = location_specific_dictionary[restaurant]
 
         merged_data, historical_data, future_data = prepare_takeout_data(
