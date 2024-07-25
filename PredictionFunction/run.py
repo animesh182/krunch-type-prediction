@@ -27,6 +27,7 @@ async def main(mytimer: func.TimerRequest) -> None:
     if mytimer.past_due:
         logging.info("The timer is past due!")
 
+
     for instance in data:
         restaurant = instance["Restaurant"]
         city = instance["City"]
@@ -40,11 +41,18 @@ async def main(mytimer: func.TimerRequest) -> None:
             '''
                 cursor.execute(end_date_query,(restaurant,))
                 latest_gastronomic_day = cursor.fetchone()[0]
+                logging.info(latest_gastronomic_day)
                 if latest_gastronomic_day:
                     latest_date = latest_gastronomic_day - timedelta(days=1)
                     end_date= latest_date.strftime("%Y-%m-%d")
         conn.close()
-        logging.info(end_date)
+        if restaurant == 'Oslo Torggata':
+            start_date= "2022-05-12"
+        if restaurant == 'Oslo Steen_Strom':
+            start_date= "2022-02-01"
+        if restaurant == 'Oslo Smestad':
+            start_date= "2021-12-31"
+        logging.info(f'end date for {restaurant} is {end_date}')
         restaurant_func = location_specific_dictionary[restaurant]
 
         merged_data, historical_data, future_data = prepare_takeout_data(

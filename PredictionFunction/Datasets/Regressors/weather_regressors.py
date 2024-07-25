@@ -102,7 +102,7 @@ def warm_dry_weather_spring(df):
     df['month'] = df['ds'].dt.month
     
     # Calculate the rolling mean of the last 10 days for air_temperature
-    df['rolling_avg_temp'] = df['air_temperature'].rolling(window=10, min_periods=1).mean()
+    df['rolling_avg_temp'] = df['sunshine_amount'].rolling(window=10, min_periods=1).mean()
 
     # Now, define the warm and cold thresholds based on the rolling averages
     warm_threshold = df['rolling_avg_temp'].quantile(0.75)  # Warm days based on rolling temperature
@@ -130,7 +130,7 @@ def warm_and_dry_future(future):
     future['month'] = future['ds'].dt.month
 
     # Calculate the rolling mean of the last 10 days for air_temperature
-    future['rolling_avg_temp'] = future['air_temperature'].rolling(window=10, min_periods=1).mean()
+    future['rolling_avg_temp'] = future['sunshine_amount'].rolling(window=10, min_periods=1).mean()
 
     # Now, define the warm and cold thresholds based on the rolling averages
     # Use the .quantile() method on the rolling average temperatures

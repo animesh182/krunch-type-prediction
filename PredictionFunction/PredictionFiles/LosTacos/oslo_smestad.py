@@ -1,3 +1,4 @@
+import logging
 import pandas as pd
 
 from prophet import Prophet
@@ -175,9 +176,21 @@ def oslo_smestad(
 
     ### Holidays and other repeating outliers
     m.add_country_holidays(country_name="NO")
+    closed_array = pd.date_range(start='2021-12-31', end='2022-10-27')
+    closed_date_strings = closed_array.strftime('%Y-%m-%d').tolist()  
+    closed_days = pd.DataFrame(
+        {
+            "holiday": "closed_day",
+            "ds": pd.to_datetime(closed_date_strings),
+            "lower_window": 0,
+            "upper_window": 0,
+            "prior_scale": 2
+        }
+    )
 
     holidays = pd.concat(
-        (
+        (   
+            closed_days,
             christmas_day,
             firstweek_jan,
             first_may,
@@ -430,7 +443,7 @@ def oslo_smestad(
     future = add_opening_hours(future, "Oslo Smestad", 7, 7)
     # future = heavy_rain_spring_weekend_future(future)
     # future = non_heavy_rain_fall_weekend_future(future)
-    future.fillna(0, inplace=True)
+    future.dropna()
 
     return m, future, df
 

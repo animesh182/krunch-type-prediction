@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import datetime
+import logging
 
 
 def predict(
@@ -12,8 +13,10 @@ def predict(
     ######### make forecast and plots
 
     # This must be changed to the correct opening hours, which varies for days and restaurants. Create dictionary for that and use here
+    # future.to_csv('future.csv') 
+    future['ds'] = pd.to_datetime(future['ds'])
+    future= future.fillna(0)
     forecast = m.predict(future)
-
     # Set negative sales to 0 (this might happen sometimes for closed days)
     forecast["yhat"] = np.where(forecast["yhat"] < 0, 0, forecast["yhat"])
 
