@@ -30,7 +30,7 @@ def type_predictor(company, restaurant, start_date, end_date):
     end_date = pd.to_datetime(end_date)
     weather_end_date = end_date + dt.timedelta(days=45)
     sales_data_df["date"] = pd.to_datetime(
-        sales_data_df["date"], format="%Y-%m-%d %H"
+        sales_data_df["date"], format="%Y-%m-%d"
     ).dt.date
 
     take_out_values = ["Ta Med Sats / Take Away", "true", "True", "SANN"]
