@@ -191,7 +191,7 @@ def fisketorget_utsalg(
     # df = heavy_rain_spring_weekday(df)
     # df = heavy_rain_spring_weekend(df)
     df = non_heavy_rain_fall_weekend(df)
-    df = add_opening_hours(df, "Fisketorget Utsalg", 13, 13)
+    df = add_opening_hours(df, "Fisketorget Utsalg", [13], [13])
 
     m = Prophet()
 
@@ -307,12 +307,12 @@ def fisketorget_utsalg(
         "Stavanger Konserthus",
         "Stavanger Forum",
     }
-
+    city='Stavanger'
     data = {"name": [], "effect": []}
     regressors_to_add = []
     for venue in fisketorget_venues:
         # for venue in karl_johan_venues:
-        venue_df = fetch_events("Stavanger", venue)
+        venue_df = fetch_events("Stavanger", venue,city)
         if "name" in venue_df.columns:
             venue_df = venue_df.drop_duplicates("date")
             venue_df["date"] = pd.to_datetime(venue_df["date"])
@@ -553,7 +553,7 @@ def fisketorget_utsalg(
     # future = heavy_rain_spring_weekday_future(future)
     # future = heavy_rain_spring_weekend_future(future)
     future = non_heavy_rain_fall_weekend_future(future)
-    future = add_opening_hours(future, "Fisketorget Utsalg", 13, 13)
+    future = add_opening_hours(future, "Fisketorget Utsalg", [13], [13])
     # Calculate the custom regressor values for the future dates
     future["ds"] = pd.to_datetime(future["ds"])
     future_date_mask = (future["ds"] >= start_date) & (future["ds"] <= end_date)

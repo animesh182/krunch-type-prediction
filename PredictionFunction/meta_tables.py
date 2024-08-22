@@ -12,6 +12,9 @@ from PredictionFunction.PredictionFiles.LosTacos.stavanger import location_funct
 from PredictionFunction.PredictionFiles.LosTacos.trondheim import location_function as trondheim_function
 from PredictionFunction.PredictionFiles.Fisketorget.fisketorget_restaurant import location_function as restaurant_function
 from PredictionFunction.PredictionFiles.Fisketorget.fisketorget_utsalg import location_function as fisketorget_utsalg_function
+from PredictionFunction.PredictionFiles.Broker.restaurantdrift import location_function as restaurantdrift_function
+from PredictionFunction.PredictionFiles.LosTacos.Alexander import location_function as alexander_function
+from PredictionFunction.PredictionFiles.LosTacos.bjorvika import location_function as bjorvika_function
 
 
 # This is a datatable showing which city each restaurant locations is in
@@ -27,6 +30,9 @@ data = [
    {"Restaurant": "Oslo Steen_Strom", "City": "Oslo", "Company": "Los Tacos"},
     {"Restaurant": "Oslo Smestad", "City": "Oslo", "Company": "Los Tacos"},
     {"Restaurant": "Sandnes", "City": "Stavanger", "Company": "Los Tacos"},
+#     {"Restaurant": "Alexander Kielland", "City": "Oslo", "Company": "Los Tacos"},
+#     {"Restaurant": "Bjørvika", "City": "Oslo", "Company": "Los Tacos"},
+    # {"Restaurant": "Restaurantdrift AS", "City": "Oslo", "Company": "The Broker"},
     #   {"Restaurant": "Restaurant","City": "Stavanger","Company": "Fisketorget","Parent Restaurant": "Fisketorget Stavanger",},
     #   {"Restaurant": "Fisketorget Utsalg","City": "Stavanger","Company": "Fisketorget","Parent Restaurant": "Fisketorget Stavanger",},
 {
@@ -54,7 +60,10 @@ location_specific_dictionary = {
     "Sandnes": sandnes_function,
     "Trondheim": trondheim_function,
     "Restaurant": restaurant_function,
-    "Fisketorget Utsalg": fisketorget_utsalg_function
+    "Fisketorget Utsalg": fisketorget_utsalg_function,
+    "Restaurantdrift AS": restaurantdrift_function,
+    "Alexander Kielland": alexander_function,
+    "Bjørvika": bjorvika_function
 }
 # OBS! for Drammen and Fredrikstad i had trouble finding good weather data, so used Oslo
 weather_locations = {

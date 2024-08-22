@@ -479,15 +479,15 @@ def fredrikstad(
     # df['not_fall_start'] = ~df['ds'].apply(is_fall_start)
 
     df["christmas_shopping"] = df["ds"].apply(is_christmas_shopping)
-    df = add_opening_hours(df, "Fredrikstad", 11, 16)
+    df = add_opening_hours(df, "Fredrikstad", [11], [16])
 
     fredrikstad_venues = {}
-
+    city= 'Fredrikstad'
     data = {"name": [], "effect": []}
     regressors_to_add = []
     for venue in fredrikstad_venues:
         # for venue in karl_johan_venues:
-        venue_df = fetch_events("Oslo Torggata", venue)
+        venue_df = fetch_events("Oslo Torggata", venue,city)
         if "name" in venue_df.columns:
             venue_df = venue_df.drop_duplicates("date")
             venue_df["date"] = pd.to_datetime(venue_df["date"])
@@ -715,7 +715,7 @@ def fredrikstad(
     # future = heavy_rain_winter_weekend_future(future)
     future = heavy_rain_spring_weekday_future(future)
     future = heavy_rain_spring_weekend_future(future)
-    future = add_opening_hours(future, "Fredrikstad", 11, 16)
+    future = add_opening_hours(future, "Fredrikstad", [11], [16])
     # future = non_heavy_rain_fall_weekend_future(future)
 
     future.fillna(0, inplace=True)

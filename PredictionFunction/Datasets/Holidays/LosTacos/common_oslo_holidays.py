@@ -109,3 +109,12 @@ oslo_pride = pd.DataFrame(
             "upper_window": 3,
         }
     )      
+
+musikkfestival = pd.DataFrame(
+        {
+            "holiday": "musikkfestival",
+            "ds": pd.to_datetime(["2022-06-04","2023-06-03","2024-06-01"]),
+            "lower_window": 0,
+            "upper_window": 1,
+        }
+    ) 

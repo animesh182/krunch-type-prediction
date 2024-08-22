@@ -429,12 +429,12 @@ def oslo_city(
         "Salt Langhuset",
         "Parkteatret Scene",
     }
-
+    city='Oslo'
     data = {"name": [], "effect": []}
     regressors_to_add = []
     for venue in oslo_city_venues:
         # for venue in karl_johan_venues:
-        venue_df = fetch_events("Oslo Torggata", venue)
+        venue_df = fetch_events("Oslo Torggata", venue,city)
         # event_holidays = pd.concat(objs=[event_holidays, venue_df], ignore_index=True)
         if "name" in venue_df.columns:
             venue_df = venue_df.drop_duplicates("date")
@@ -489,7 +489,7 @@ def oslo_city(
     df["fall_start"] = df["ds"].apply(is_fall_start)
 
     df["christmas_shopping"] = df["ds"].apply(is_christmas_shopping)
-    df = add_opening_hours(df, "Oslo City", 12, 12)
+    df = add_opening_hours(df, "Oslo City", [12], [12])
     # df['not_christmas_shopping'] = ~df['ds'].apply(is_christmas_shopping)
 
     # The training DataFrame (df) should also include 'days_since_last' and 'days_until_next' columns.
@@ -796,7 +796,7 @@ def oslo_city(
     # future = non_heavy_rain_fall_weekend_future(future)
     future.fillna(0, inplace=True)
     future = future.drop_duplicates(subset="ds")
-    future = add_opening_hours(future, "Oslo City", 12, 12)
+    future = add_opening_hours(future, "Oslo City", [12], [12])
 
     return m, future, df
 

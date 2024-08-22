@@ -213,7 +213,7 @@ def karl_johan(
     # df = warm_dry_weather_spring(df)
     df = calculate_days_15(df, fifteenth_working_days)
     # df = non_heavy_rain_fall_weekend(df)
-    df = add_opening_hours(df, "Karl Johan", 12, 17)
+    df = add_opening_hours(df, "Karl Johan", [12], [17])
 
     m = Prophet()
 
@@ -319,10 +319,11 @@ def karl_johan(
     }
 
     data = {"name": [], "effect": []}
+    city='Oslo'
     regressors_to_add = []
     for venue in karl_johan_venues:
         # for venue in karl_johan_venues:
-        venue_df = fetch_events("Oslo Torggata", venue)
+        venue_df = fetch_events("Oslo Torggata", venue,city)
         # event_holidays = pd.concat(objs=[event_holidays, venue_df], ignore_index=True)
         if "name" in venue_df.columns:
             venue_df = venue_df.drop_duplicates("date")
@@ -730,7 +731,7 @@ def karl_johan(
     if prediction_category != "hour":
         future["ds"] = future["ds"].dt.date
     future.fillna(0, inplace=True)
-    future = add_opening_hours(future, "Karl Johan", 12, 17)
+    future = add_opening_hours(future, "Karl Johan", [12], [17])
 
     return m, future, df
 

@@ -190,7 +190,7 @@ def bergen(prediction_category,restaurant,merged_data,historical_data,future_dat
     #df = heavy_rain_spring_weekday(df)
     df = heavy_rain_spring_weekend(df)
     df = non_heavy_rain_fall_weekend(df)
-    df = add_opening_hours(df, "Bergen",12, 17)
+    df = add_opening_hours(df, "Bergen",[12], [17])
 
     m = Prophet()
 
@@ -433,10 +433,10 @@ def bergen(prediction_category,restaurant,merged_data,historical_data,future_dat
         "James Church","Nygårdsparken Pavilion","Ytre Arna Church","Grieghallen",
         "Teglverket, Kvarteret","Åsane idrettspark","Kulturhuset",
     }
-    
+    city='Bergen'
     regressors_to_add = []
     for venue in bergen_venues:
-        venue_df = fetch_events("Bergen", venue)  # Assuming you have a function Events_dict()
+        venue_df = fetch_events("Bergen", venue,city)  # Assuming you have a function Events_dict()
         # event_holidays = pd.concat(objs=[event_holidays, venue_df], ignore_index=True)
         # print(f'{venue}: {venue_df.columns}')
         if 'name' in venue_df.columns:
@@ -733,7 +733,7 @@ def bergen(prediction_category,restaurant,merged_data,historical_data,future_dat
     future["sunshine_amount"] = merged_data["sunshine_amount"]
     future["windspeed"] = merged_data["windspeed"]
     future["air_temperature"] = merged_data["air_temperature"]
-    future = add_opening_hours(future, "Bergen", 12,17)
+    future = add_opening_hours(future, "Bergen", [12],[17])
     future = warm_and_dry_future(future)
     #future = heavy_rain_fall_weekday_future(future)
     #future = heavy_rain_fall_weekend_future(future)

@@ -23,9 +23,11 @@ def predict(
     # create a pandas dataframe of the forecasst
     future["ds"] = pd.to_datetime(future["ds"])
 
+    logging.info(len(future))
     # Filter out predictions for dates before today
     today = pd.to_datetime(datetime.datetime.now().date())
     future_predictions = future[future["ds"] > today]
+    logging.info(len(future_predictions))
 
     # Join the forecast with the future predictions on the 'ds' column
     forecast_df = pd.DataFrame(forecast, columns=["yhat"])

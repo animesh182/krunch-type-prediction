@@ -11,17 +11,17 @@ first_may = pd.DataFrame(
         }
     )
 
-# NO 17th may in oslo_city
-# seventeenth_may = pd.DataFrame(
-#         {
-#             "holiday": "Seventeenth of may",
-#             "ds": pd.to_datetime(
-#                 ["2021-05-17", "2022-05-17", "2023-05-17", "2024-05-17"]
-#             ),
-#             "lower_window": -1,
-#             "upper_window": 0,
-#         }
-#     )
+
+seventeenth_may = pd.DataFrame(
+        {
+            "holiday": "Seventeenth of may",
+            "ds": pd.to_datetime(
+                ["2021-05-17", "2022-05-17", "2023-05-17", "2024-05-17", "2025-05-17", "2026-05-17", "2027-05-17"]
+            ),
+            "lower_window": -1,
+            "upper_window": 0,
+        }
+    )
 
 # ------Holidays--------
 # firstweek_jan = pd.DataFrame(
@@ -193,6 +193,33 @@ vinterferie_ostlandet_saturday = pd.DataFrame(
         "holiday": "Lørdagen i vinterferien",
         "ds": pd.to_datetime(["2022-02-26", "2023-02-25", "2024-02-24"]),
         "lower_window": 0,
+        "upper_window": 0,
+    }
+) 
+
+new_year_romjul= pd.DataFrame(
+    {
+        "holiday": "new year romjul",
+        "ds": pd.to_datetime(["2022-12-30", "2023-12-30", "2024-12-30","2025-12-30","2026-12-30"]),
+        "lower_window": -4,
+        "upper_window": 0,
+    }
+) 
+
+easter = pd.DataFrame(
+    {
+        "holiday": "Easter",
+        "ds": pd.to_datetime(["2022-04-18", "2023-04-10", "2024-04-01","2025-04-21"]),
+        "lower_window": -4,
+        "upper_window": 0,
+    }
+) 
+
+christmas_day = pd.DataFrame(
+    {
+        "holiday": "Easter",
+        "ds": pd.to_datetime(["2022-12-25", "2023-12-25", "2024-12-25","2025-12-25"]),
+        "lower_window": -1,
         "upper_window": 0,
     }
 ) 

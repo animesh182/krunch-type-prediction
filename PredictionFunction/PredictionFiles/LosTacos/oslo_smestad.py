@@ -263,7 +263,7 @@ def oslo_smestad(
     df["fall_start"] = df["ds"].apply(is_fall_start)
 
     df["christmas_shopping"] = df["ds"].apply(is_christmas_shopping)
-    df = add_opening_hours(df, "Oslo Storo", 11, 11)
+    df = add_opening_hours(df, "Oslo Storo", [11], [11])
     # df['not_christmas_shopping'] = ~df['ds'].apply(is_christmas_shopping)
 
     oslo_smestad_venues = {
@@ -277,12 +277,12 @@ def oslo_smestad(
         "Riksscenen Oslo",
         "University of Oslo",
     }
-
+    city='Oslo'
     data = {"name": [], "effect": []}
     regressors_to_add = []
     for venue in oslo_smestad_venues:
         # for venue in karl_johan_venues:
-        venue_df = fetch_events("Oslo Torggata", venue)
+        venue_df = fetch_events("Oslo Torggata", venue,city)
         # event_holidays = pd.concat(objs=[event_holidays, venue_df], ignore_index=True)
         if "name" in venue_df.columns:
             venue_df = venue_df.drop_duplicates("date")
@@ -440,7 +440,7 @@ def oslo_smestad(
     # future = heavy_rain_winter_weekday_future(future)
     # future = heavy_rain_winter_weekend_future(future)
     future = heavy_rain_spring_weekday_future(future)
-    future = add_opening_hours(future, "Oslo Smestad", 7, 7)
+    future = add_opening_hours(future, "Oslo Smestad", [7], [7])
     # future = heavy_rain_spring_weekend_future(future)
     # future = non_heavy_rain_fall_weekend_future(future)
     future.dropna()

@@ -250,7 +250,7 @@ def oslo_steenstrom(
     # Different weekly seasonality for 2 weeks in august related to starting fall semester/work
     df["fall_start"] = df["ds"].apply(is_fall_start)
     df["christmas_shopping"] = df["ds"].apply(is_christmas_shopping)
-    df = add_opening_hours(df, "Oslo Steen_Strom", 9, 8)
+    df = add_opening_hours(df, "Oslo Steen_Strom", [9], [8])
 
     oslo_steen_strom_venues = {
         "Sentrum Scene",
@@ -262,12 +262,12 @@ def oslo_steenstrom(
         "Salt Langhuset",
         "Parkteatret Scene",
     }
-
+    city='Oslo'
     data = {"name": [], "effect": []}
     regressors_to_add = []
     for venue in oslo_steen_strom_venues:
         # for venue in karl_johan_venues:
-        venue_df = fetch_events("Oslo Torggata", venue)
+        venue_df = fetch_events("Oslo Torggata", venue,city)
         # event_holidays = pd.concat(objs=[event_holidays, venue_df], ignore_index=True)
         if "name" in venue_df.columns:
             venue_df = venue_df.drop_duplicates("date")
@@ -509,7 +509,7 @@ def oslo_steenstrom(
     # future = heavy_rain_winter_weekend_future(future)
     # future = heavy_rain_spring_weekday_future(future)
     future = heavy_rain_spring_weekend_future(future)
-    future = add_opening_hours(future, "Oslo Steen_Strom", 9, 8)
+    future = add_opening_hours(future, "Oslo Steen_Strom", [9], [8])
     # future = non_heavy_rain_fall_weekend_future(future)
     future.fillna(0, inplace=True)
 

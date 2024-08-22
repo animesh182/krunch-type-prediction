@@ -305,7 +305,7 @@ def oslo_torggata(
     # Different weekly seasonality for 2 weeks in august related to starting fall semester/work
     df["fall_start"] = df["ds"].apply(is_fall_start)
     df["christmas_shopping"] = df["ds"].apply(is_christmas_shopping)
-    df = add_opening_hours(df, "Oslo Torggata", 13, 17)
+    df = add_opening_hours(df, "Oslo Torggata", [13], [17])
 
     oslo_torggata_venues = {
         "Sentrum Scene",
@@ -323,12 +323,12 @@ def oslo_torggata(
         "Tøyenparken",
         "University of Oslo",
     }
-
+    city='Oslo'
     data = {"name": [], "effect": []}
     regressors_to_add = []
     for venue in oslo_torggata_venues:
         # for venue in karl_johan_venues:
-        venue_df = fetch_events("Oslo Torggata", venue)
+        venue_df = fetch_events("Oslo Torggata", venue,city)
         if "name" in venue_df.columns:
             venue_df = venue_df.drop_duplicates("date")
             venue_df["date"] = pd.to_datetime(venue_df["date"])
@@ -623,7 +623,7 @@ def oslo_torggata(
     future["fall_start"] = future["ds"].apply(is_fall_start)
     future["christmas_shopping"] = future["ds"].apply(is_christmas_shopping)
     future["specific_month"] = future["ds"].apply(is_specific_month)
-    future = add_opening_hours(future, "Oslo Torggata", 13, 17)
+    future = add_opening_hours(future, "Oslo Torggata", [13], [17])
     # Calculate the custom regressor values for the future dates
     future["ds"] = pd.to_datetime(future["ds"])
     future_date_mask = (future["ds"] >= start_date) & (future["ds"] <= end_date)

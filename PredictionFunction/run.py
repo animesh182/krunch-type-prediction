@@ -52,6 +52,11 @@ async def main(mytimer: func.TimerRequest) -> None:
             start_date= "2022-02-01"
         if restaurant == 'Oslo Smestad':
             start_date= "2021-12-31"
+        if restaurant == 'Alexander Kielland':
+            start_date= "2024-04-10"
+        if restaurant == 'Bjørvika':
+            start_date= "2024-04-20"
+        logging.info(f'start date for {restaurant} is {start_date}')
         logging.info(f'end date for {restaurant} is {end_date}')
         restaurant_func = location_specific_dictionary[restaurant]
 

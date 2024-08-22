@@ -293,7 +293,7 @@ def trondheim(prediction_category,restaurant,merged_data,historical_data,future_
     df["fall_start"] = df["ds"].apply(is_fall_start)
     df["covid_loose_fall21"] = df["ds"].apply(is_covid_loose_fall21)
     df["christmas_shopping"] = df["ds"].apply(is_christmas_shopping)
-    df= add_opening_hours(df,"Trondheim",12,17)
+    df= add_opening_hours(df,"Trondheim",[12],[17])
 
     def calculate_days(df, last_working_day):
         # Convert 'ds' column to datetime if it's not already
@@ -432,7 +432,7 @@ def trondheim(prediction_category,restaurant,merged_data,historical_data,future_
     future["covid_loose_fall21"] = future["ds"].apply(is_covid_loose_fall21)
     future["christmas_shopping"] = future["ds"].apply(is_christmas_shopping)
     future["christmas_shopping"] = future["ds"].apply(is_christmas_shopping)
-    future= add_opening_hours(future,"Trondheim",12,17)
+    future= add_opening_hours(future,"Trondheim",[12],[17])
     future["rain_sum"] = merged_data["rain_sum"]
     future["windspeed"] = merged_data["windspeed"]
     future["air_temperature"] = merged_data["air_temperature"]

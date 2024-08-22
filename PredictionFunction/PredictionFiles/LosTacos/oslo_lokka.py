@@ -209,7 +209,7 @@ def oslo_lokka_jtorget_smestad_torggata(
     df["ds"] = pd.to_datetime(df["ds"])
     # Calculate the week number for each date
     df["week_number"] = df["ds"].dt.isocalendar().week
-    df = add_opening_hours(df, "Oslo Lokka", 12, 17)
+    df = add_opening_hours(df, "Oslo Lokka", [12], [17])
 
     # Convert 'ds' column to datetime if it is not already
     df["ds"] = pd.to_datetime(df["ds"])
@@ -260,12 +260,12 @@ def oslo_lokka_jtorget_smestad_torggata(
         "Oslo Concert Hall",
         "Salt Langhuset",
     }
-
+    city='Oslo'
     data = {"name": [], "effect": []}
     regressors_to_add = []
     for venue in oslo_lokka_venues:
         # for venue in karl_johan_venues:
-        venue_df = fetch_events("Oslo Torggata", venue)
+        venue_df = fetch_events("Oslo Torggata", venue,city)
         # event_holidays = pd.concat(objs=[event_holidays, venue_df], ignore_index=True)
         if "name" in venue_df.columns:
             venue_df = venue_df.drop_duplicates("date")
@@ -516,7 +516,7 @@ def oslo_lokka_jtorget_smestad_torggata(
     future = heavy_rain_spring_weekday_future(future)
     future = heavy_rain_spring_weekend_future(future)
     future = non_heavy_rain_fall_weekend_future(future)
-    future = add_opening_hours(future, "Oslo Lokka", 12, 17)
+    future = add_opening_hours(future, "Oslo Lokka", [12], [17])
     future.fillna(0, inplace=True)
 
     return m, future, df

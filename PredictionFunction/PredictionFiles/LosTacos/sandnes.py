@@ -286,7 +286,7 @@ def sandnes(prediction_category, restaurant, merged_data, historical_data, futur
     df["fall_start"] = df["ds"].apply(is_fall_start)
     df["covid_loose_fall21"] = df["ds"].apply(is_covid_loose_fall21)
     df["christmas_shopping"] = df["ds"].apply(is_christmas_shopping)
-    df = add_opening_hours(df, "Sandnes", 11, 9)
+    df = add_opening_hours(df, "Sandnes", [11], [9])
 
     sandnes_venues = {
         "Bryne",
@@ -305,12 +305,12 @@ def sandnes(prediction_category, restaurant, merged_data, historical_data, futur
         # "University of Stavanger", "Vaisenhusgata", "Varhaughallen", "Western Plus Victoria Hotel",
         # "Zetlitz", "Åkra kirke", "Ølberg harbour"
     }
-
+    city='Stavanger'
     data = {"name": [], "effect": []}
     regressors_to_add = []
     for venue in sandnes_venues:
         # for venue in karl_johan_venues:
-        venue_df = fetch_events("Stavanger", venue)
+        venue_df = fetch_events("Stavanger", venue,city)
         if "name" in venue_df.columns:
             venue_df = venue_df.drop_duplicates("date")
             venue_df["date"] = pd.to_datetime(venue_df["date"])
@@ -589,7 +589,7 @@ def sandnes(prediction_category, restaurant, merged_data, historical_data, futur
     future = heavy_rain_spring_weekday_future(future)
     future = heavy_rain_spring_weekend_future(future)
     future = non_heavy_rain_fall_weekend_future(future)
-    future = add_opening_hours(future, "Sandnes", 11, 9)
+    future = add_opening_hours(future, "Sandnes", [11], [9])
     future.fillna(0, inplace=True)
 
     return m, future, df

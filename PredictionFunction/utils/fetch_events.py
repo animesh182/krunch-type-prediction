@@ -5,19 +5,21 @@ from datetime import timedelta, datetime
 from PredictionFunction.utils.params import params
 
 
-def fetch_events(restaurant, location_name):
+def fetch_events(restaurant, location_name, city_name):
     # Define the query
     raw_query = """ SELECT e.name,e.event_size,e.start_date,e.end_date
                     FROM public."Events" e
                     JOIN public."Events_restaurants" er ON e.id = er.events_id
                     JOIN public."accounts_restaurant" ar ON er.restaurant_id = ar.id
                     JOIN public."Predictions_location" pl ON e.location_id = pl.id
+                    JOIN public."accounts_city" ac on pl.cities_id = ac.id
                     WHERE ar.name = %s
                         AND pl.name = %s
+                        AND ac.name = %s
                         """
     with psycopg2.connect(**params) as conn:
         with conn.cursor() as cursor:
-            cursor.execute(raw_query, [restaurant, location_name])
+            cursor.execute(raw_query, [restaurant, location_name,city_name])
             rows = cursor.fetchall()
             events_dict = []
             for row in rows:
