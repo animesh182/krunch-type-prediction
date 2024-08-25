@@ -21,20 +21,11 @@ def predict(
     forecast["yhat"] = np.where(forecast["yhat"] < 0, 0, forecast["yhat"])
 
     # create a pandas dataframe of the forecasst
-    future["ds"] = pd.to_datetime(future["ds"])
-
+    forecast["ds"] = pd.to_datetime(forecast["ds"])
     logging.info(len(future))
     # Filter out predictions for dates before today
     today = pd.to_datetime(datetime.datetime.now().date())
-    future_predictions = future[future["ds"] > today]
-    logging.info(len(future_predictions))
-
-    # Join the forecast with the future predictions on the 'ds' column
-    forecast_df = pd.DataFrame(forecast, columns=["yhat"])
-    forecast_df = future_predictions.reset_index().join(
-        forecast_df
-    )  # Adjust as per your 'future' DataFrame's structure
-
+    forecast_df = forecast[forecast["ds"] > today]
     # Optionally, adjust the forecast based on other factors (like tourist data, if applicable)
 
     # Return the DataFrame with future dates and corresponding predictions

@@ -47,9 +47,9 @@ def save_to_db(forecast_df, company, restaurant, prediction_category):
             lambda x: x.strftime("%Y-%m-%d %H:%M:%S")
         )
         prediction_data["id"] = prediction_data["id"].apply(str)
+        # prediction_data.to_csv(f'{restaurant}_pred_data.csv')
         if restaurant in ['Oslo City','Oslo Steen_Strom']:
             prediction_data.loc[pd.to_datetime(prediction_data['date']).dt.dayofweek == 6, 'take_out'] = 0
-        # prediction_data.to_csv("fred_forecast.csv")
         save_type_predictions(prediction_data, restaurant)
 
     print(f"Finished prediction for {restaurant} of {company}")

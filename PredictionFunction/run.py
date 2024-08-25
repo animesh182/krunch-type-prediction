@@ -78,4 +78,5 @@ async def main(mytimer: func.TimerRequest) -> None:
             end_date,
             prediction_category,
         )
+        # forecast.to_csv('befire.csv')
         save_to_db(forecast, company, restaurant, prediction_category)

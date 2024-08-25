@@ -418,6 +418,7 @@ def oslo_torggata(
             yearly_seasonality=True,
             daily_seasonality=False,
             changepoint_prior_scale=0.1,
+            uncertainty_samples=0
         )
 
     # Add the payday columns as regressors

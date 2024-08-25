@@ -412,6 +412,7 @@ def stavanger(
             changepoint_range=0.95,
             changepoint_prior_scale=0.15,
             seasonality_mode="multiplicative",
+            uncertainty_samples=0
         )
 
     # m.add_regressor('days_since_last')

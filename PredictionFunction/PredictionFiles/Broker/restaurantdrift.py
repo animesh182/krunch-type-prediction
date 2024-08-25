@@ -219,7 +219,8 @@ def restaurantdrift(
         # weekly_seasonality=False,
         # daily_seasonality=False,
         changepoint_prior_scale=0.01,
-        seasonality_mode="additive"
+        seasonality_mode="additive",
+        uncertainty_samples=0
     )
 
 

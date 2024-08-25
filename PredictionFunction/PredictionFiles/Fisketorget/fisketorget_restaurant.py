@@ -391,6 +391,7 @@ def fisketorget_restaurant(
             seasonality_prior_scale=2,
             holidays_prior_scale=5,
             seasonality_mode="additive",
+            uncertainty_samples=0
         )
 
     m.add_regressor("custom_regressor")

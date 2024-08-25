@@ -179,7 +179,8 @@ def alexander_function(
         yearly_seasonality=False,
         daily_seasonality=False,
         changepoint_prior_scale=0.1,
-        changepoint_range=0.8
+        changepoint_range=0.8,
+        uncertainty_samples=0
     )
 
 

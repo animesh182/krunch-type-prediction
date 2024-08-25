@@ -466,6 +466,7 @@ def karl_johan(
             yearly_seasonality=True,
             daily_seasonality=False,
             changepoint_prior_scale=0.1,
+            uncertainty_samples=0
         )
 
     # Weather regressors

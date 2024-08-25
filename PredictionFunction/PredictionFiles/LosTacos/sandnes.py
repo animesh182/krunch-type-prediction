@@ -385,6 +385,7 @@ def sandnes(prediction_category, restaurant, merged_data, historical_data, futur
             yearly_seasonality=True,
             daily_seasonality=False,
             changepoint_prior_scale=0.1,
+            uncertainty_samples=0
         )
 
     # m.add_regressor('days_since_last')

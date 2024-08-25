@@ -356,6 +356,7 @@ def trondheim(prediction_category,restaurant,merged_data,historical_data,future_
             daily_seasonality=False,
             changepoint_prior_scale=0.5,
             seasonality_prior_scale=0.4,
+            uncertainty_samples=0
         )
     
     m.add_regressor("custom_regressor")

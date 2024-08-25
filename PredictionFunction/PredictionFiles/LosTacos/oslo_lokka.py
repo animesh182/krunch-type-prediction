@@ -323,6 +323,7 @@ def oslo_lokka_jtorget_smestad_torggata(
             daily_seasonality=False,
             changepoint_prior_scale=0.1,
             seasonality_mode="multiplicative",
+            uncertainty_samples=0
         )
 
     # Add the payday columns as regressors
