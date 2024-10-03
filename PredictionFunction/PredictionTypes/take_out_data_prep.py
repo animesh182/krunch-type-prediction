@@ -12,19 +12,19 @@ def type_predictor(company, restaurant, start_date, end_date):
 
     # Create a pandas DataFrame
     restaurant_list = pd.DataFrame(data)
-    if restaurant == "Trondheim":
-        filtered_sales_data, actual_trondheim_start_date = sales_without_effect(
-            restaurant_list["Company"].iloc[0],
-            start_date,
-            end_date,
-            "Karl Johan",
-            "Stavanger",
-        )
-        filtered_sales_data = filtered_sales_data.rename(
-            columns={"gastronomic_day": "date"}
-        )
-    else:
-        filtered_sales_data = fetch_salesdata(company, restaurant, start_date, end_date)
+    # if restaurant == "Trondheim":
+    #     filtered_sales_data, actual_trondheim_start_date = sales_without_effect(
+    #         restaurant_list["Company"].iloc[0],
+    #         start_date,
+    #         end_date,
+    #         "Karl Johan",
+    #         "Stavanger",
+    #     )
+    #     filtered_sales_data = filtered_sales_data.rename(
+    #         columns={"gastronomic_day": "date"}
+    #     )
+    # else:
+    filtered_sales_data = fetch_salesdata(company, restaurant, start_date, end_date)
     # Convert the filtered SalesData to a DataFrame
     sales_data_df = filtered_sales_data
     end_date = pd.to_datetime(end_date)

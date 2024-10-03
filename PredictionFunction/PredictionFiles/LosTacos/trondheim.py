@@ -354,7 +354,7 @@ def trondheim(prediction_category,restaurant,merged_data,historical_data,future_
             holidays=holidays,
             yearly_seasonality=5,
             daily_seasonality=False,
-            changepoint_prior_scale=0.5,
+            changepoint_prior_scale=0.01,
             seasonality_prior_scale=0.4,
             uncertainty_samples=0
         )
